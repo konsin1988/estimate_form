@@ -1,0 +1,58 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/react/Dockerfile
+    container_name: estimate-frontend
+    image: estimate-frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:80"
+        #- "${REACT_PORT}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+        - estimate-network
+    
+  backend:
+    image: estimate-backend
+    container_name: estimate-backend
+    build:
+      context: .
+      dockerfile: ./docker/django/Dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_USER=${REDIS_USER}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - VITE_API_URL="http://localhost:8000"
+      - PGSERVICEFILE=${PGSERVICEFILE}
+      - ENCRYPT_KEY=${ENCRYPT_KEY}
+      - IV=${IV}
+    command: gunicorn backend.wsgi:application --timeout 900 --bind 0.0.0.0:8000
+        #    command: python3 manage.py runserver 0.0.0.0:8000 --noreload  
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    volumes:
+      - ./backend/:/app/
+    networks:
+      - estimate-network
+
+networks:
+  estimate-network:
+    name: estimate-network
+    external: True

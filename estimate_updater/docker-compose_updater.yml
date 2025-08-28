@@ -1,0 +1,22 @@
+services:
+  revenue_monthly_updater:
+    env_file: 
+      - "../.env"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: revenue-monthly-updater:latest
+    container_name: revenue-monthly-updater
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+    networks:
+      - revenue-estimate-network
+
+networks:
+  revenue-estimate-network:
+    name: revenue-estimate-network
+    external: True
