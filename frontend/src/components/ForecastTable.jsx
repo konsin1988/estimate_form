@@ -41,7 +41,7 @@ export default function ForecastTable({ user, init_frc, list_frc, is_admin }) {
 
 	// fetch plan
 	const fetchPlan = async () => {
-	    api.get(`/api/plan/?frc=${encodeURIComponent(frc)}`).then(res => {
+	    api.get(`/plan/?frc=${encodeURIComponent(frc)}`).then(res => {
 		// map by month (date_dt)
 		const map = {};
 		res.data.forEach(item => {
@@ -57,7 +57,7 @@ export default function ForecastTable({ user, init_frc, list_frc, is_admin }) {
 	fetchPlan()
 
       // fetch estimates
-	api.get(`/api/est/?frc=${encodeURIComponent(frc)}`).then(res=>{
+	api.get(`/est/?frc=${encodeURIComponent(frc)}`).then(res=>{
 	    const e = {};
 	    Object.keys(res.data || {}).forEach(k=>{
 		const m = parseInt(k,10);
@@ -75,7 +75,7 @@ export default function ForecastTable({ user, init_frc, list_frc, is_admin }) {
 	}).catch(e=>console.error(e));
 
 	// fetch fact
-	api.get(`/api/fact/?frc=${encodeURIComponent(frc)}`).then(res=>{
+	api.get(`/fact/?frc=${encodeURIComponent(frc)}`).then(res=>{
 	    const e = {};
 	    Object.keys(res.data || {}).forEach(k=>{
 		const m = parseInt(k,10);
@@ -133,14 +133,14 @@ export default function ForecastTable({ user, init_frc, list_frc, is_admin }) {
 	    });
 	}
 	try {
-	    const resp = await api.post("/api/est/save/", {
+	    const resp = await api.post("/est/save/", {
 		frc,
 		year: currentYear,
 		items
 	    });
 	alert(`Сохранено: created ${resp.data.created}, updated ${resp.data.updated}`);
 	// refresh data
-	const resp2 = await api.get(`/api/est/?frc=${encodeURIComponent(frc)}`);
+	const resp2 = await api.get(`/est/?frc=${encodeURIComponent(frc)}`);
 	setEstByMonth(resp2.data || {});
 	} catch (err) {
 	    console.error(err);

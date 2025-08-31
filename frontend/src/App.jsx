@@ -21,7 +21,7 @@ function App() {
 	const segments = url.split("/").filter(Boolean);
     	const user = segments[segments.length - 1];
     	try {
-    	    api.get(`/api/frc/by_user?user=${encodeURIComponent(user)}`).then(res_frc => {
+    	    api.get(`/frc/by_user?user=${encodeURIComponent(user)}`).then(res_frc => {
     		if (res_frc.status === 200) {
 		    if (res_frc.data.frc === 'admin') {
 			setIsAdmin(true)
@@ -30,7 +30,7 @@ function App() {
 			setFrc(res_frc.data.frc);
 		    }
 		    setUser(res_frc.data.login);
-		    api.get(`/api/frc/list/`).then(res_list => {
+		    api.get(`/frc/list/`).then(res_list => {
 			if (res_list.status === 200) {
 			    setListFrc(res_list.data)
 			    setLoading(false)

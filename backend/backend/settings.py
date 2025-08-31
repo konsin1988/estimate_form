@@ -1,24 +1,21 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()  # загружаем .env
+load_dotenv()  
 from pathlib import Path
 import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+DEBUG = os.getenv("DEBUG").lower() == "true"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost").split()
+ALLOWED_HOSTS = ["*"]
+# ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost").split()
 
 # Application definition
 
@@ -113,10 +110,6 @@ AUTH_PASSWORD_VALIDATORS = [
 #        "LOCATION": f"redis://{os.getenv('REDIS_USER')}:{os.getenv('REDIS_PASSWORD')}@{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}",
 #    }
 #}
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 

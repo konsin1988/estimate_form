@@ -1,9 +1,10 @@
-FROM node:20-alpine AS build
+FROM node:18 AS build
 WORKDIR /app
 COPY frontend/package* .
-RUN npm install --production=false
+RUN npm install 
 COPY ./frontend/ .
-CMD ["npm", "run", "build"]
+RUN npm run build
+# CMD ["npm", "run", "build"]
 
 FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html

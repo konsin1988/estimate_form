@@ -4,12 +4,15 @@ services:
       context: .
       dockerfile: ./docker/react/Dockerfile
     container_name: estimate-frontend
-    image: estimate-frontend
+    image: konsin1988/estimate-frontend
     volumes:
       - ./frontend:/app
     ports:
       - "3000:80"
         #- "${REACT_PORT}:3000"
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_SECRET_KEY=${VITE_SECRET_KEY}
     depends_on:
       backend:
         condition: service_healthy
@@ -17,13 +20,13 @@ services:
         - estimate-network
     
   backend:
-    image: estimate-backend
+    image: konsin1988/estimate-backend
     container_name: estimate-backend
     build:
       context: .
       dockerfile: ./docker/django/Dockerfile
-    ports:
-      - 8000:8000
+    ports: 
+      - "8000:8000"
     environment:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
@@ -34,8 +37,9 @@ services:
       - REDIS_USER=${REDIS_USER}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      - DEBUG=${DEBUG}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - VITE_API_URL="http://localhost:8000"
+      - SECRET_KEY=${SECRET_KEY}
       - PGSERVICEFILE=${PGSERVICEFILE}
       - ENCRYPT_KEY=${ENCRYPT_KEY}
       - IV=${IV}
