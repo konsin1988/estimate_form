@@ -23,8 +23,8 @@ export default function ForecastTable({ user, init_frc, list_frc, is_admin }) {
     const [factByMonth, setFactByMonth] = useState({});
     const currentYear = dayjs().year();
     const currentMonth = dayjs().month() + 1; // 1..12
-    // const currentDay = dayjs().date();
-    const currentDay = 13;
+    const currentDay = dayjs().date();
+    // const currentDay = 13;
     
     const debouncedSave = useMemo(() => 
 	debounce((newData) => {
@@ -91,7 +91,6 @@ export default function ForecastTable({ user, init_frc, list_frc, is_admin }) {
 
     const handleChange = (est_data, month, field, rawValue) => {
 	const value = parse(checkNumbers(rawValue))
-	console.log(currentDay)
 	var sum_amount = value ? value : 0
 	const diffList = ['hcl_amount', 'est_amount', 'contr_amount']
 	const index = diffList.indexOf(field)

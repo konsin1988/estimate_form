@@ -5,7 +5,7 @@ export const saveEst = createAsyncThunk(
     "estimate/saveEst",
     async (estData, { rejectWithValue }) => {
 	try {
-	    const response = await api.put('/api/est/save/', estData);
+	    const response = await api.put('/est/save/', estData);
 	    console.log(response.data)
 	    return response.data;
 	} catch(err) {
