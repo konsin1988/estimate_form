@@ -43,7 +43,8 @@ function App() {
     };
 
     useEffect(() => {
-	const enc_string = encryptParam('i.grudcov');
+	// const enc_string = encryptParam('i.grudcov');
+	const enc_string = encryptParam('i.chaykovskiy');
 	//const enc_string = encryptParam('n.vetrova');
 	// const enc_string = encryptParam('d.konshin');
 	console.log(enc_string);

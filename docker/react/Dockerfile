@@ -4,7 +4,6 @@ COPY frontend/package* .
 RUN npm install 
 COPY ./frontend/ .
 RUN npm run build
-# CMD ["npm", "run", "build"]
 
 FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
