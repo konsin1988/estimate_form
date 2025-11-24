@@ -6,8 +6,10 @@ import api from "../api";
 import dayjs from "dayjs";
 import axios from "axios";
 import { useNumberFormatter } from "../hooks/useNumberFormatter";
+import Modal from "./Modal";
 
 import { encryptParam } from "../scripts/encryptParam";
+import { getDelta } from "../scripts/getDelta";
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь", "Год, всего"];
 const ROW_NAMES = ["Выручка", "Контракт", "ВСК", "Прогноз"]; 
 
@@ -27,7 +29,9 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
     const currentYear = dayjs().year();
     const currentMonth = dayjs().month() + 1; // 1..12
     const currentDay = dayjs().date();
+    const delta = getDelta(currentMonth);
     // const currentDay = 13;
+    const [isOpen, setOpen] = useState(false);
     
     const debouncedSave = useMemo(() => 
 	debounce((newData) => {
@@ -184,6 +188,7 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
 				    login: login,
 				    frc: frc
       });
+				setOpen(true);
 				console.log(response.data)
     }
 
@@ -301,7 +306,7 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
                         <td className={`border px-1 py-1 ${cellBg(mi,1)}`}>
                           { (monthIndex < currentMonth | monthIndex == 13) ? (
                             <div className="text-gray-800 text-right"></div>
-                          ) : currentDay > 9 ? (
+                          ) : currentDay > delta ? (
                             <div
                               className={`w-full 
 				text-center px-1 py-0.5 bg-transparent text-gray-700 `}
@@ -330,6 +335,11 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
 				    <button type="button" className={`fixed top-75/100 left-70/100 bg-gray-700 text-gray-200 active:bg-gray-200 active:text-gray-700 active:border-red-200 py-1 px-6 border rounded-md border-gray-800`} onClick={buttonSubmitOnClick}>
 				        Подтвердить ввод
 				    </button>
+						<Modal 
+								isOpen={isOpen}
+								onClose={() => setOpen(false)}
+								message="Данные успешно сохранены"
+						/>
 				</div>
 
     </div>
