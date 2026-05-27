@@ -12,5 +12,5 @@ export function encryptParam(value) {
     return encodeURIComponent(encrypted.ciphertext.toString(CryptoJS.enc.Base64));
 }
 
-process.stdout.write(encryptParam('v.efremov'))
+process.stdout.write(encryptParam('d.konshin'))
 

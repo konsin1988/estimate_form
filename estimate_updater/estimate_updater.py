@@ -31,15 +31,16 @@ class YearUpdater:
     def __get_all_frc(self):
         c_year = datetime.now().year
         query = f"""
-            select rev.company, rev.frc 
-            from fin.revenue_est_2025 rev
-            group by rev.company, rev.frc
+            select distinct frc, 'АО "РТ-Техприемка"' as company  
+            from fin.frc_index 
+            where rev_frc is true
             """
         return self.__read_sql_query(query)
        
 
     def __get_all_dates(self):
-        c_year = datetime.now().year
+        # c_year = datetime.now().year
+        c_year = int(os.getenv('YEAR'))
         return pd.DataFrame({'date_dt': [datetime(c_year, 1, 1).date() + relativedelta(months=i) for i in range(12)],
                             'estimate_date': [datetime(c_year, 1, 1).date()] * 12,
                             'est_amount': [None] * 12,
