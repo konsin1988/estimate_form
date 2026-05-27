@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/react/Dockerfile
-    container_name: estimate-frontend
-    image: konsin1988/estimate-frontend
+    container_name: ${PROJECT_NAME}-frontend
+    image: konsin1988/${PROJECT_NAME}-frontend:${PROJECT_VERSION}
     ports:
       - "3000:80"
         #- "${REACT_PORT}:3000"
@@ -18,8 +18,8 @@ services:
         - estimate-network
     
   backend:
-    image: konsin1988/estimate-backend
-    container_name: estimate-backend
+    image: konsin1988/${PROJECT_NAME}-backend:${PROJECT_VERSION}
+    container_name: ${PROJECT_NAME}-backend
     build:
       context: .
       dockerfile: ./docker/django/Dockerfile

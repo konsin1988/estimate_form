@@ -41,21 +41,21 @@ class Mailer:
         day, month, year = self.__get_month_year()
         date_stop = datetime(year, month, 8).strftime('%d.%m.%Y')
         reminder = f"<strong>В срок до {date_stop} включительно</strong> прошу " if day < 5 else f"Напоминаю, что <strong>в срок до {date_stop} включительно</strong> нужно "
-        msg_sign = """
-        --<br/><br/>
-        <p><strong>С уважением, <br/>Илья Чайковский<br/></strong></p>
-<p>Руководитель проектов</p>
-<p>Направление "Фабрика данных"</p>
-<p>АО «РТ-Техприемка»</p>
-<p>i.chaykovskiy@rt-techpriemka.ru</p>
-<p>https://rttec.ru</p>
-<p>+7(903)228-16-12<br/></p>
-        """
+#         msg_sign = """
+#         --<br/><br/>
+#         <p><strong>С уважением, <br/>Илья Чайковский<br/></strong></p>
+# <p>Руководитель проектов</p>
+# <p>Направление "Фабрика данных"</p>
+# <p>АО «РТ-Техприемка»</p>
+# <p>i.chaykovskiy@rt-techpriemka.ru</p>
+# <p>https://rttec.ru</p>
+# <p>+7(903)228-16-12<br/></p>
+#         """
         msg_text = f"""
         <html>
             <p>Добрый день, {io}!<br /></p>
             <p>{reminder}актуализировать прогнозные
-            значения на {self.__months[month]} – декабрь {year} года
+            значения на {self.__months[month - 1]} – декабрь {year} года
             <u>в разрезе степени контрактации: контракт (договоры заключены), высокая степень контрактации (договоры в процессе заключения),
             прогноз (договоры планируются к заключению)</u>.</p>
 
@@ -65,7 +65,7 @@ class Mailer:
             <p>Ссылка на портал СКИД - https://skid.rtt.digital</p>
             <p>Прошу обратить внимание, что данные вносятся в <strong>рублях</strong> (не тысячах рублей) и <strong>без НДС</strong>.</p>
              <br />
-            {msg_sign}
+             По возникающим вопросам обращаться к Чайковскому И.С. тел.326 </br>
         </html>
         """
         return msg_text
@@ -76,7 +76,7 @@ class Mailer:
         addr_from, password = self.__get_env(self.__mail_env_names)
         msg['From'] = addr_from
         msg['To'] = addr_to
-        msg['Subject'] = f'Актуализация прогнозов за {self.__months[month]} - декабрь {year} года'
+        msg['Subject'] = f'Актуализация прогнозов за {self.__months[month - 1]} - декабрь {year} года'
         msg.add_alternative(self.__get_msg_text(io), subtype='html')
 
         file_name = 'Инструкция v2.docx'
