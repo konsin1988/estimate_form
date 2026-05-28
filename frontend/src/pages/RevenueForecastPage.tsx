@@ -1,13 +1,15 @@
 import React from "react";
 import { useState, useEffect } from "react"
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import ForecastTable from "./components/ForecastTable";
-import NotTable from "./components/NotTable";
-import api from "./api";
-import { encryptParam } from "./scripts/encryptParam";
+import { useParams } from "react-router-dom";
 
-function App() {
+import ForecastTable from "../components/ForecastTable";
+import NotTable from "../components/NotTable";
+import api from "../services/api";
+import { encryptParam } from "../scripts/encryptParam";
+
+export default function RevenueForecastPage() {
+    const { hash } = useParams();
+
     const [loading, setLoading] = useState(true)
     const [frc, setFrc] = useState("")
     const [isValid, setIsValid] = useState(false)
@@ -15,14 +17,11 @@ function App() {
     const [isAdmin, setIsAdmin] = useState(false)
     const [user, setUser] = useState('')
     const [login, setLogin] = useState('')
+        
 
     /* Loading frc by user */
-    const fetchFrcByUser = () => {
-				const url = window.location.pathname;
-				const segments = url.split("/").filter(Boolean);
-
-				const user = segments[segments.length - 1];
-				api.get(`/frc/by_user?user=${encodeURIComponent(user)}`).then(res_frc => {
+    const fetchFrcByUser = (hash: string) => {
+				api.get(`/frc/by_user?user=${encodeURIComponent(hash)}`).then(res_frc => {
     		    if (res_frc.status === 200) {
 								if (res_frc.data.length > 0) {
 								    setUser(res_frc.data[0].user)
@@ -50,7 +49,7 @@ function App() {
     };
 
     useEffect(() => {
-        fetchFrcByUser();
+        fetchFrcByUser(hash);
    }, [])  
 
     useEffect(() => {
@@ -60,19 +59,15 @@ function App() {
     }, [listFrc])
 
     return (
-	<div className="select-none">
-	    <Header />
-	    <main className="bg-gray-300 h-screen min-w-screen"> 
-		{loading ? <NotTable type="loading"/> : 
-		    (isValid ? <ForecastTable  
-				    target_user={user}
-				    target_login={login}
-						init_frc={frc} 
-						list_frc={listFrc} /> : <NotTable type="not_valid"/>)}
-	    </main>
-	    <Footer />
-	</div>
+	    <div className="select-none">
+	        <main className="bg-gray-300 h-screen min-w-screen"> 
+	    	  {loading ? <NotTable type="loading"/> : 
+	    	    (isValid ? <ForecastTable  
+	    			    target_user={user}
+	    			    target_login={login}
+	    					init_frc={frc} 
+	    					list_frc={listFrc} /> : <NotTable type="not_valid"/>)}
+	        </main>
+	    </div>
     );
 }
-
-export default App;
