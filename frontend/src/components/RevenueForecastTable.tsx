@@ -8,12 +8,11 @@ import axios from "axios";
 import { useNumberFormatter } from "../hooks/useNumberFormatter";
 import Modal from "./Modal";
 
-import { encryptParam } from "../scripts/encryptParam";
 import { getDelta } from "../scripts/getDelta";
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь", "Год, всего"];
 const ROW_NAMES = ["Выручка", "Контракт", "ВСК", "Прогноз"]; 
 
-export default function ForecastTable({ target_user, target_login, init_frc, list_frc }) {
+export default function RevenueForecastTable({frc, target_user, target_login }) {
     const dispatch = useDispatch();
     const { data, loading, error } = useSelector((state) => state.profile);
     
@@ -21,8 +20,6 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
 
     const user = target_user;
     const login = target_login;
-    const listFrc = list_frc;
-    const [frc, setFrc] = useState(init_frc);
     const [planByMonth, setPlanByMonth] = useState({}); 
     const [estByMonth, setEstByMonth] = useState({}); 
     const [factByMonth, setFactByMonth] = useState({});
@@ -179,19 +176,6 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
     };
     
     
-    // LOGGING USER ACTIONS
-    const buttonSubmitOnClick = async (event) => {
-				event.preventDefault();
-
-				const response = await api.post('/est/log/', {
-				    user: user,
-				    login: login,
-				    frc: frc
-      });
-				setOpen(true);
-				console.log(response.data)
-    }
-
     const handleColsVisibleClick = (type) => {
 				if (type === 'more') {
 				    if (colsVisible > 0) setColsVisible(colsVisible - 1)
@@ -203,20 +187,8 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
 
 
     return (
-    <div className="overflow-x-auto flex flex-col justify-center align-center h-full">
+    <>
 	      <div className="w-full h-5/12" >
-				   <div className="px-4 fixed top-12/100">
-				      <label className="block mb-2 text-lg text-gray-700 font-medium">ЦФО:</label>
-	            <select
-	              	value={frc}
-	              	onChange={(e) => setFrc(e.target.value)}
-	              	className="p-2 border rounded-lg text-gray-700">
-	              	{listFrc.map((item, index) => 
-	              	    <option key={index}>{item}</option> 
-	              	)}
-	            </select>
-	        </div>
-
 				  <div className="px-20 fixed top-27/100">
 					<button type="button" 
 	      	    className="bg-gray-700 text-gray-200 mx-2 text-s px-6 py-1" 
@@ -231,39 +203,39 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
 				</div>
 				</div>
 				
-				<div> 
+        <div className="h-full"> 
         <table className="min-w-full table-fixed border-collapse text-sm text-gray-700 border-gray-700">
             <thead>
               <tr>
                 <th rowSpan={2} className="sticky left-0 z-20 w-40 border border-separate border-gray-800 px-1 py-1 bg-gray-50"></th>
                 {MONTHS_RU.slice(colsVisible).map((m,i)=>(
-		    <th key={m} colSpan={2} className={`text-center border px-1 py-1 ${i%2===0? 'bg-gray-800 text-white' : 'bg-gray-700 text-white'}`}>
+		    <th key={`one_${m}`} colSpan={2} className={`text-center border px-1 py-1 ${i%2===0? 'bg-gray-800 text-white' : 'bg-gray-700 text-white'}`}>
                     {m}
 		    </th>
                 ))}
               </tr>
               <tr>
                 {/* второй уровень: Бюджет, Прогноз */}
-                {Array.from({length:13 - colsVisible}).map((_,ni)=> { 
+                {Array.from({length:13 - colsVisible}).map((month_idx,ni)=> { 
                     var i = ni + colsVisible;
 		    const monthIndex = i+1;
 		    return monthIndex < currentMonth ? (
                   <>
-                    <th key={`b_${i}`} className={`w-32 border border-l-2 px-6 py-1 border-b-2 
+                    <th key={`b_${i}_${month_idx}`} className={`w-32 border border-l-2 px-6 py-1 border-b-2 
 			text-center text-gray-700 ${cellBg(i,0)}`}>Бюджет</th>
-                    <th key={`p_${i}`} className={`w-40 border px-7 py-2 border-b-2 
+                    <th key={`p_${i}_${month_idx}`} className={`w-40 border px-7 py-2 border-b-2 
 			text-center text-gray-700 ${cellBg(i,1)}`}>Факт</th>
                   </>) : (monthIndex === 13 ? (
 		  <>
-                    <th key={`b_${i}`} className={`w-32 border border-l-2 px-6 py-1 border-b-2 
+                    <th key={`bb_${i}_${month_idx}`} className={`w-32 border border-l-2 px-6 py-1 border-b-2 
 			text-center text-gray-700 ${cellBg(i,0)}`}>Бюджет</th>
-                    <th key={`p_${i}`} className={`w-40 border px-5 py-2 border-b-2 
+                    <th key={`pp_${i}_${month_idx}`} className={`w-40 border px-5 py-2 border-b-2 
 			text-center text-gray-700 ${cellBg(i,1)}`}>Прогноз + Факт</th>
                   </>) : (
 		  <>
-                    <th key={`b_${i}`} className={`w-32 border border-l-2 px-6 py-1 border-b-2 
+                    <th key={`b3_${i}_${month_idx}`} className={`w-32 border border-l-2 px-6 py-1 border-b-2 
 			text-center text-gray-700 ${cellBg(i,0)}`}>Бюджет</th>
-                    <th key={`p_${i}`} className={`w-40 border px-5 py-2 border-b-2 
+                    <th key={`p3_${i}_${month_idx}`} className={`w-40 border px-5 py-2 border-b-2 
 			text-center text-gray-700 ${cellBg(i,1)}`}>Прогноз</th>
                   </>))
 		})}
@@ -286,9 +258,9 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
 			const val = monthIndex === 13 ? planByMonth['total'] : (planByMonth[monthIndex] ?? "");
                       return (
                         <React.Fragment key={`mi_${rowIdx}_${mi}`}>
-                          <td className={`border px-1 py-1 
+                          <td key={`m2_${rowIdx}_${mi}`} className={`border px-1 py-1 
 			      text-center font-semibold border-l-2 text-gray-800 ${cellBg(mi,0)}`}>{format(val)}</td>
-                          <td className={`border px-1 py-1 text-black ${cellBg(mi,1)}`}>
+                          <td key={`m3_${rowIdx}_${mi}`} className={`border px-1 py-1 text-black ${cellBg(mi,1)}`}>
                               <div className={`text-gray-800 
 				font-semibold text-center`}>{estFact}
 			  </div>
@@ -296,14 +268,13 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
                         </React.Fragment>
                       );
                     }
-
                     // For rows Контракт (rowIdx==3), ВСК (4), Прогноз (5) -> fill only from estByMonth (contr_amount/hcl_amount/est_amount)
                     const fieldMap = {1: "contr_amount", 2: "hcl_amount", 3: "est_amount"};
                     const field = fieldMap[rowIdx];
                     return (
-                      <React.Fragment key={`${rowIdx}_${mi}`}>
-                        <td className={`border px-1 py-1 border-l-2 ${cellBg(mi,0)} `}></td>
-                        <td className={`border px-1 py-1 ${cellBg(mi,1)}`}>
+                      <React.Fragment key={`mii_${rowIdx}_${mi}`}>
+                        <td key={`m4_${rowIdx}_${mi}`} className={`border px-1 py-1 border-l-2 ${cellBg(mi,0)} `}></td>
+                        <td key={`m5_${rowIdx}_${mi}`} className={`border px-1 py-1 ${cellBg(mi,1)}`}>
                           { (monthIndex < currentMonth | monthIndex == 13) ? (
                             <div className="text-gray-800 text-right"></div>
                           ) : currentDay > delta ? (
@@ -330,19 +301,7 @@ export default function ForecastTable({ target_user, target_login, init_frc, lis
             </tbody>
         </table>
 				</div> 
-
-				<div className={`w-full h-1/3 `}>
-				    <button type="button" className={`fixed top-75/100 left-70/100 bg-gray-700 text-gray-200 active:bg-gray-200 active:text-gray-700 active:border-red-200 py-1 px-6 border rounded-md border-gray-800`} onClick={buttonSubmitOnClick}>
-				        Подтвердить ввод
-				    </button>
-						<Modal 
-								isOpen={isOpen}
-								onClose={() => setOpen(false)}
-								message="Данные успешно сохранены"
-						/>
-				</div>
-
-    </div>
+    </>
   );
 }
 

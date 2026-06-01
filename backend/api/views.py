@@ -2,10 +2,26 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
-from django.db.models import Max, Sum
+from django.db.models import Max, Sum, Q, F, DecimalField
+from django.db.models.functions import TruncMonth, Coalesce
 from datetime import datetime, date, timedelta
-from .models import RevenuePlan2025, RevenueEst2025, RevenueFact, RevenueUsers, RevenueEstLog 
-from .serializers import PlanSerializer, EstSerializer, UserSerializer, EstLogSerializer
+from .models import ( RevenuePlan2025, 
+                     RevenueEst2025, 
+                     RevenueFact, 
+                     RevenueUsers, 
+                     RevenueEstLog,
+                     CostEstModel,
+                     CostPlanModel,
+                     CostFactModel,
+                     )
+from .serializers import ( PlanSerializer, 
+                          EstSerializer, 
+                          UserSerializer, 
+                          EstLogSerializer,
+                          CostEstSerializer,
+                          CostPlanSerializer,
+                          CostFactSerializer,
+                          )
 from .utils import decrypt_param
 from django.db import transaction
 from django.db.models.functions import Extract
@@ -71,7 +87,6 @@ class EstByFrcAPIView(APIView):
             return Response({"detail": "frc required"}, status=400)
 
         # Найдём для каждого месяца максимальную estimate_date, затем возьмём записи с этой estimate_date
-        # Делается на Python для простоты портирования (кол-во строк небольшое)
         qs = RevenueEst2025.objects.filter(frc=frc, date_dt__year=year).using('fin')
         # Group by month of date_dt
         month_map = {}  # month (1..12) -> record with max estimate_date
@@ -137,3 +152,65 @@ class SaveEstimatesAPIView(APIView):
 class SaveEstLog(CreateAPIView):
     queryset = RevenueEstLog.objects.all()
     serializer_class = EstLogSerializer 
+
+class CostEstByFrcAPIView(APIView):  
+    """ Get all estimate data from table "cost_est" by frc. /api/costest?frc_owner=XXX """ 
+    def get(self, request):
+        frc_owner = request.GET.get("frc_owner")
+        if not frc_owner:
+            return Response({"detail": "frc_owner required"}, status=400)
+
+        year = datetime.now().year
+        cur_date = datetime.strftime(datetime.now().date() - relativedelta(months=1), "%Y-%m-01")
+        cur_month = datetime.now().month
+
+        qs = ( 
+            CostEstModel.objects.using('fin')
+                .filter(frc_owner=frc_owner, date_dt__year=year)
+                .filter(Q(estimate_date=F('date_dt')) | Q(estimate_date__month=cur_month))
+                .values(
+                        'id', 'date_dt', 'estimate_date', 'frc', 
+                        'cons_type', 'type_1c', 'frc_owner'
+                    )
+                .annotate(amount=Coalesce(F('amount'), 0, output_field=DecimalField()))
+        )
+        ser = CostEstSerializer(qs, many=True)
+        return Response(ser.data)
+
+
+class CostFactByFrcAPIView(APIView):
+    """ /cost/fact/?frc_owner=XXX """
+    def get(self, request):
+        frc_owner = request.GET.get("frc_owner")
+        if not frc_owner:
+            return Response({"detail": "frc_owner required"}, status=400)
+
+        year = datetime.now().year
+        cur_month = datetime.now().month
+
+        qs = (
+            CostFactModel.objects.filter(frc_owner=frc_owner, date_dt__year=year)
+            .annotate(
+                month = Extract("date_dt", "month"),
+                month_date = TruncMonth("date_dt"),
+                      )
+            .values("month_date", "frc", "cons_type", "type_1c", "frc_owner")
+            .annotate(month_amount=Sum("amount"))
+            .order_by("month")
+            .using('fin')
+        )
+        ser = CostFactSerializer(qs, many=True)
+        return Response(ser.data)
+
+
+class CostPlanByFrcAPIView(APIView):
+    """ /cost/plan/?frc_owner=XXX """
+    def get(self, request):
+        frc_owner = request.GET.get("frc_owner")
+        if not frc_owner:
+            return Response({"detail": "frc_owner required"}, status=400)
+        
+        year = datetime.now().year
+        qs = CostPlanModel.objects.filter(frc_owner=frc_owner, date_dt__year=year).using('fin')
+        ser = CostPlanSerializer(qs, many=True)
+        return Response(ser.data)
