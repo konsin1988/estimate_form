@@ -10,7 +10,7 @@ lib/
 lib64/
 virtualenv/
 .env
-/data/
+/**/*.xlsx
 
 /**/pnpm-lock.yaml
 /**/*.csv
