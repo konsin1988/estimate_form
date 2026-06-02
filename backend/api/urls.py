@@ -10,6 +10,7 @@ from .views import (FrcByUser,
                     CostEstByFrcAPIView,
                     CostPlanByFrcAPIView,
                     CostFactByFrcAPIView,
+                    CostsByFrcAPIView,
                     )
 
 urlpatterns = [
@@ -24,4 +25,5 @@ urlpatterns = [
     path("api/cost/est/", CostEstByFrcAPIView.as_view(), name="costest"),
     path("api/cost/plan/", CostPlanByFrcAPIView.as_view(), name="costplan"),
     path("api/cost/fact/", CostFactByFrcAPIView.as_view(), name="costfact"),
+    path("api/costs/", CostsByFrcAPIView.as_view(), name="costs-by-frc"),
 ]
