@@ -3,6 +3,9 @@ import os
 import base64
 from Crypto.Cipher import AES
 from urllib.parse import unquote
+from datetime import datetime
+import pandas as pd
+
 
 def get_sum(est_amount, hcl_amount, contr_amount):
     est_am_value = est_amount if est_amount else 0
@@ -25,4 +28,29 @@ def decrypt_param(encrypted_b64_uri: str) -> str:
         return decrypted.decode("utf-8")
     except:
         return None
+
+def is_editable():
+    cur_date = datetime.now()
+    cur_day = cur_date.day
+    threshold = 8 if cur_date.month != 1 else 16
+    return 1 if cur_day < threshold else 0 
+
+def get_dates():
+    months = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"]
+    def __get_list_dates(start, end):
+        estimate_dt = datetime.now().date().replace(day=1)
+        return pd.DataFrame({
+            "date_dt": [estimate_dt.replace(month=i).strftime("%Y-%m-%d") for i in range(start, end)],
+            "month_name": [months[i-1] for i in range(start, end)],
+            })
+    
+    cur_month = datetime.now().month
+
+    return {
+        "plan": __get_list_dates(1, 13),
+        "fact": __get_list_dates(1, cur_month),
+        "est": __get_list_dates(cur_month, 13),
+
+    }
+
 
