@@ -1,17 +1,7 @@
 from django.urls import path
-from .views import (FrcByUser, 
-                    PlanByFrcAPIView, 
-                    EstByFrcAPIView, 
-                    FactByFrcAPIView, 
-                    SaveEstimatesAPIView, 
-                    health, 
-                    FrcList, 
-                    SaveEstLog,
-                    CostEstByFrcAPIView,
-                    CostPlanByFrcAPIView,
-                    CostFactByFrcAPIView,
-                    CostsByFrcAPIView,
-                    )
+from api.views import *
+from api.view.CostByFrcAPIView import CostByFrcAPIView
+from api.view.CostDupAPIView import CostDupAPIView
 
 urlpatterns = [
     path("health/", health, name='health_check'),
@@ -22,8 +12,6 @@ urlpatterns = [
     path("api/fact/", FactByFrcAPIView.as_view(), name="api-fact"),
     path("api/frc/by_user/", FrcByUser.as_view(), name='frc-by-user'),
     path("api/est/log/", SaveEstLog.as_view(), name="est-log"),
-    path("api/cost/est/", CostEstByFrcAPIView.as_view(), name="costest"),
-    path("api/cost/plan/", CostPlanByFrcAPIView.as_view(), name="costplan"),
-    path("api/cost/fact/", CostFactByFrcAPIView.as_view(), name="costfact"),
-    path("api/costs/", CostsByFrcAPIView.as_view(), name="costs-by-frc"),
+    path("api/costs/", CostByFrcAPIView.as_view(), name="costs-by-frc"),
+    path("api/costs/dup", CostDupAPIView.as_view(), name="costs-dup"),
 ]

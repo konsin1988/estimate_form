@@ -100,7 +100,6 @@ class CostEstModel(models.Model):
             primary_key=True, 
             unique=True,
             )
-    company = models.CharField(blank=True, null=True)
     date_dt = models.DateField(blank=True, null=True)
     estimate_date = models.DateField(blank=True, null=True)
     frc = models.CharField(blank=True, null=True)
@@ -124,16 +123,12 @@ class CostPlanModel(models.Model):
             primary_key=True, 
             unique=True,
             )
-    company = models.CharField(blank=True, null=True)
     date_dt = models.DateField(blank=True, null=True)
     frc = models.CharField(blank=True, null=True)
-    cost_level = models.CharField(blank=True, null=True)
     cost_consolidation = models.CharField(blank=True, null=True)
-    cost_economic = models.CharField(blank=True, null=True)
     cost_1c = models.CharField(blank=True, null=True)
     amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
     frc_owner = models.CharField(blank=True, null=True)
-    frc_spender = models.CharField(blank=True, null=True)
 
     def __str__(self):
         return self.company
@@ -164,3 +159,51 @@ class CostFactModel(models.Model):
         managed = False
         db_table = "cost_fact"
 
+
+class CostFrcMappingModel(models.Model):
+    type_1c = models.CharField(blank=True, null=False)
+    frc = models.CharField(blank=True, null=False)
+
+    def __str__(self):
+        return self.frc
+
+    class Meta:
+        managed = False
+        db_table = "cost_frc_mapping"
+
+
+class CostConsolidateMappingModel(models.Model):
+    type_1c = models.CharField(blank=True, null=False)
+    cons_type = models.CharField(blank=True, null=False)
+
+    def __str__(self):
+        return self.frc
+
+    class Meta:
+        managed = False
+        db_table = "cost_consolidate_mapping"
+
+
+class CostDupMappingModel(models.Model):
+    type_1c = models.CharField(blank=True, null=False)
+    division = models.CharField(blank=True, null=False)
+    cons_type = models.CharField(blank=True, null=False)
+
+    def __str__(self):
+        return self.division
+
+    class Meta:
+        managed = False
+        db_table = "cost_dup_mapping"
+
+class FrcIndexModel(models.Model):
+    frc = models.CharField(blank=True, null=False)
+    rev_frc = models.CharField(blank=True, null=False)
+    dup_frc = models.CharField(blank=True, null=False)
+
+    def __str__(self):
+        return self.division
+
+    class Meta:
+        managed = False
+        db_table = "frc_index"

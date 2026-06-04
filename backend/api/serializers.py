@@ -1,13 +1,6 @@
 from rest_framework import serializers
-from .models import ( RevenuePlan2025, 
-                     RevenueEst2025, 
-                     RevenueFact, 
-                     RevenueUsers, 
-                     RevenueEstLog,
-                     CostEstModel,
-                     CostPlanModel,
-                     CostFactModel,
-                     )
+from .models import *
+
 
 class PlanSerializer(serializers.ModelSerializer):
     class Meta:
@@ -35,18 +28,48 @@ class EstLogSerializer(serializers.ModelSerializer):
 class CostEstSerializer(serializers.ModelSerializer):
     class Meta:
         model = CostEstModel 
-        fields= ["id", "date_dt", "estimate_date", "frc", "cons_type", "type_1c", "frc_owner", "amount"]
+        fields= ["id", "date_dt", "cons_type", "type_1c", "amount"]
 
-class CostPlanSerializer(serializers.ModelSerializer):
+class CostDupEstSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CostPlanModel 
-        fields= ["id", "date_dt", "frc", "cost_consolidation", "cost_1c", "frc_owner", "amount"]
+        model = CostEstModel 
+        fields= ["id", "date_dt", "frc", "cons_type", "type_1c", "amount"]
+
+class CostPlanSerializer(serializers.Serializer):
+    month_date = serializers.DateField() 
+    cost_1c = serializers.CharField()
+    cost_consolidation = serializers.CharField()
+    month_amount = serializers.DecimalField(max_digits=12, decimal_places=2)
+
+class CostDupPlanSerializer(CostPlanSerializer):
+    frc = serializers.CharField()
 
 class CostFactSerializer(serializers.Serializer):
     month_date = serializers.DateField() 
-    frc = serializers.CharField()
     cons_type = serializers.CharField()
     type_1c = serializers.CharField()
-    frc_owner = serializers.CharField()
     month_amount = serializers.DecimalField(max_digits=12, decimal_places=2)
 
+class CostDupFactSerializer(CostFactSerializer):
+    frc = serializers.CharField()
+
+
+class CostFrcMappingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CostFrcMappingModel
+        fields= ["type_1c", "frc"]
+
+class CostConsolidateMappingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CostConsolidateMappingModel
+        fields= ["type_1c", "cons_type"]
+
+class CostDupMappingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CostDupMappingModel
+        fields= ["type_1c", "division", "cons_type"]
+
+class FrcIndexSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FrcIndexModel 
+        fields= ["frc"]

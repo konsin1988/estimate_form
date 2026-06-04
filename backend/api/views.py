@@ -1,29 +1,19 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-import pandas as pd
 from rest_framework.generics import CreateAPIView
+import pandas as pd
+from django.db import connections
 from django.db.models import Max, Sum, Q, F, DecimalField, Value, CharField
 from django.db.models.functions import TruncMonth, Coalesce
 from datetime import datetime, date, timedelta
-from .models import ( RevenuePlan2025, 
-                     RevenueEst2025, 
-                     RevenueFact, 
-                     RevenueUsers, 
-                     RevenueEstLog,
-                     CostEstModel,
-                     CostPlanModel,
-                     CostFactModel,
-                     )
-from .serializers import ( PlanSerializer, 
-                          EstSerializer, 
-                          UserSerializer, 
-                          EstLogSerializer,
-                          CostEstSerializer,
-                          CostPlanSerializer,
-                          CostFactSerializer,
-                          )
-from .utils import decrypt_param
+from api.models import *
+from api.serializers import *
+from api.utils import ( 
+                    decrypt_param, 
+                    is_editable,
+                    get_dates,
+                    )
 from django.db import transaction
 from django.db.models.functions import Extract
 from dateutil.relativedelta import relativedelta
@@ -154,153 +144,3 @@ class SaveEstLog(CreateAPIView):
     queryset = RevenueEstLog.objects.all()
     serializer_class = EstLogSerializer 
 
-class CostEstByFrcAPIView(APIView):  
-    """ Get all estimate data from table "cost_est" by frc. /api/costest?frc_owner=XXX """ 
-    def get(self, request):
-        frc_owner = request.GET.get("frc_owner")
-        if not frc_owner:
-            return Response({"detail": "frc_owner required"}, status=400)
-
-        year = datetime.now().year
-        cur_date = datetime.strftime(datetime.now().date() - relativedelta(months=1), "%Y-%m-01")
-        cur_month = datetime.now().month
-
-        qs = ( 
-            CostEstModel.objects.using('fin')
-                .filter(frc_owner=frc_owner, date_dt__year=year)
-                .filter(Q(estimate_date=F('date_dt')) | Q(estimate_date__month=cur_month))
-                .values(
-                        'id', 'date_dt', 'estimate_date', 'frc', 
-                        'cons_type', 'type_1c', 'frc_owner'
-                    )
-                .annotate(amount=Coalesce(F('amount'), 0, output_field=DecimalField()))
-        )
-        ser = CostEstSerializer(qs, many=True)
-        return Response(ser.data)
-
-
-class CostFactByFrcAPIView(APIView):
-    """ /cost/fact/?frc_owner=XXX """
-    def get(self, request):
-        frc_owner = request.GET.get("frc_owner")
-        if not frc_owner:
-            return Response({"detail": "frc_owner required"}, status=400)
-
-        year = datetime.now().year
-        cur_month = datetime.now().month
-
-        qs = (
-            CostFactModel.objects.filter(frc_owner=frc_owner, date_dt__year=year)
-            .annotate(
-                month = Extract("date_dt", "month"),
-                month_date = TruncMonth("date_dt"),
-                      )
-            .values("month_date", "frc", "cons_type", "type_1c", "frc_owner")
-            .annotate(month_amount=Sum("amount"))
-            .order_by("month")
-            .using('fin')
-        )
-        ser = CostFactSerializer(qs, many=True)
-        return Response(ser.data)
-
-
-class CostPlanByFrcAPIView(APIView):
-    """ /cost/plan/?frc_owner=XXX """
-    def get(self, request):
-        frc_owner = request.GET.get("frc_owner")
-        if not frc_owner:
-            return Response({"detail": "frc_owner required"}, status=400)
-        
-        year = datetime.now().year
-        qs = CostPlanModel.objects.filter(frc_owner=frc_owner, date_dt__year=year).using('fin')
-        ser = CostPlanSerializer(qs, many=True)
-        return Response(ser.data)
-
-
-class CostsByFrcAPIView(APIView):
-    """ /api/costs/?frc_owner=XXX """
-    def get(self, request):
-        frc_owner = request.GET.get("frc_owner")
-        if not frc_owner:
-            return Response({"detail": "frc_owner required"}, status=400)
-        
-        year = datetime.now().year
-        estimate_date = datetime.strftime(datetime.now(), "%Y-%m-01")
-        cur_month = datetime.now().month
-
-
-        # plan
-        qs = ( 
-            CostPlanModel.objects.using('fin')
-              .filter(frc_owner=frc_owner, date_dt__year=year)
-        )
-        ser = CostPlanSerializer(qs, many=True)
-        plan = ( 
-            pd.json_normalize(ser.data)
-            .assign(source='plan')
-            .rename(columns={
-                "cost_consolidation": "group", 
-                "cost_1c": "subgroup",
-                "date_dt": "month",
-                })
-            [['id', 'source', 'month', 'group', 'subgroup', 'amount']]
-        )
-        
-        # estimate 
-        qs = ( 
-            CostEstModel.objects.using('fin')
-                .filter(frc_owner=frc_owner, date_dt__year=year, estimate_date=estimate_date)
-                .values(
-                        'id', 'date_dt', 
-                        'cons_type', 'type_1c', 'frc_owner'
-                    )
-                .annotate(
-                    amount=Coalesce(F('amount'), 0, output_field=DecimalField()),
-                )
-        )
-        ser = CostEstSerializer(qs, many=True)
-        est = (
-            pd.json_normalize(ser.data)
-            .assign(source = 'est')
-            .rename(columns={
-                "date_dt": "month",
-                "cons_type": "group",
-                "type_1c": "subgroup",
-            })
-            [['id', 'source', 'month', 'group', 'subgroup', 'amount']]
-        )
-        
-        # fact
-        qs = (
-            CostFactModel.objects.using('fin')
-            .filter(frc_owner=frc_owner, date_dt__year=year)
-            .annotate(
-                month = Extract("date_dt", "month"),
-                month_date = TruncMonth("date_dt"),
-                      )
-            .values("month_date", "frc", "cons_type", "type_1c", "frc_owner")
-            .annotate(
-                month_amount=Sum("amount"),
-            )
-            .order_by("month")
-        )
-        ser = CostFactSerializer(qs, many=True)
-        fact = (
-            pd.json_normalize(ser.data)
-            .assign(
-                source='fact',
-                id=None,
-            )
-            .rename(columns={
-                "cons_type": "group",
-                "type_1c": "subgroup",
-                "month_date": "month",
-                "month_amount": "amount",
-            })
-            [['id', 'source', 'month', 'group', 'subgroup', 'amount']]
-            .query('month < @estimate_date')
-        )
-
-        res = pd.concat([plan, est, fact]).query('(group == "Административные расходы") and (subgroup == "2.1.4. 25. Материальные затраты")')
-
-        return Response(res.to_dict(orient="records"))
