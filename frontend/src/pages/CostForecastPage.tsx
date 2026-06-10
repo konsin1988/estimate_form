@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../auth/AuthProvider";
 import FrcChoice from "../components/FrcChoice";
 import SubmitButton from "../components/SubmitButton";
+import CostForecastTable from "../components/CostForecastTable";
 
 export default function RevenueForecastPage() {
   const {login, costsFrc} = useAuth();
@@ -19,9 +20,7 @@ export default function RevenueForecastPage() {
 	          	listFrc={costsFrc} 
             /> 
           </div>
-          <h1 className="text-2xl font-bold">
-            Cost Forecast Page
-          </h1>
+            < CostForecastTable frc={frc} />
           <div className="fixed top-75/100 left-70/100">
             <SubmitButton frc={frc} is_revenue={0} />
           </div>

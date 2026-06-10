@@ -1,15 +1,13 @@
 import React, { useEffect, useState, useMemo } from "react";
 
 import { useAuth } from "../auth/AuthProvider"
-import api from "../services/api";
+import api from "../api/axios";
 import Modal from "./Modal";
 
 export default function SubmitButton({ frc, is_revenue }){
   const [isOpen, setOpen] = useState(false);
   const { user, login } = useAuth();
   const is_cost = 1 - is_revenue;
-  console.log(is_revenue);
-  console.log(is_cost);
 
   const buttonSubmitOnClick = async (event) => {
 		event.preventDefault();
@@ -22,7 +20,6 @@ export default function SubmitButton({ frc, is_revenue }){
         is_cost: is_cost,
     });
 		setOpen(true);
-		console.log(response.data)
   }
   return (
     <>
