@@ -10,21 +10,18 @@ export default function RevenueForecastPage() {
 
   const [ frc, setFrc ] = useState<string>(costsFrc[0]);
 
+        //<div className="overflow-x-auto flex flex-col justify-start align-center h-full">
     return (
-      <main className="pt-55 min-w-screen"> 
-        <div className="overflow-x-auto flex flex-col justify-center align-center h-full">
-	        <div className="w-full h-5/12" >
+      <>
             <FrcChoice
               frc={frc}
 	          	setFrc={setFrc}
 	          	listFrc={costsFrc} 
             /> 
-          </div>
-            < CostForecastTable frc={frc} />
-          <div className="fixed top-75/100 left-70/100">
+            <div className={`fixed top-19/100 h-76/100 w-full overflow-auto left-2/100`}>
+              < CostForecastTable frc={frc} />
+            </div>
             <SubmitButton frc={frc} is_revenue={0} />
-          </div>
-        </div>
-      </main>
+      </>
     );
 }

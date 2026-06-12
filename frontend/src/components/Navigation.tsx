@@ -39,7 +39,7 @@ export default function Navigation() {
               to={`/user/dup`} 
               className={navClass}
             >
-              ДУП 
+              УП 
             </NavLink>} 
 
             <a

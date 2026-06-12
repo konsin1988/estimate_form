@@ -23,29 +23,33 @@ export default function SubmitButton({ frc, is_revenue }){
   }
   return (
     <>
-			<button type="button" className={`
+     <div className="fixed w-full bottom-0 h-14/100 bg-gray-200 z-40"> 
+      <div className="fixed bottom-7/100 left-78/100">
+			  <button type="button" className={`
+        min-w-[140px]
+        h-9
+        rounded-lg
+        flex
+        items-center
+        justify-center
+        text-[#ebe3dd]
+        transition-colors
+        bg-[#8a8a92] 
+        hover:bg-[#a6a8ad]
+        active:bg-white
+        active:text-gray-700 
+        py-1 
+        px-6 
+        border 
+        rounded-md 
+        border-gray-800
+        `} onClick={buttonSubmitOnClick}>
 
-      min-w-[140px]
-      h-9
-      rounded-lg
-      flex
-      items-center
-      justify-center
-      text-[#ebe3dd]
-      transition-colors
-      bg-[#8a8a92] 
-      hover:bg-[#a6a8ad]
-      active:bg-white
-      active:text-gray-700 
-      py-1 
-      px-6 
-      border 
-      rounded-md 
-      border-gray-800
-      `} onClick={buttonSubmitOnClick}>
+			      Подтвердить ввод
+			  </button>
+      </div>
+      </div>
 
-			    Подтвердить ввод
-			</button>
 			<Modal 
 					isOpen={isOpen}
 					onClose={() => setOpen(false)}

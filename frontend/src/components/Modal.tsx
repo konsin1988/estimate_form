@@ -4,8 +4,8 @@ export default function Modal({ isOpen, onClose, message }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-1000">
-						<div className="bg-white p-6 rounded-2xl shadow-xl w-80 text-center">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-100">
+						<div className="bg-white p-6 rounded-2xl shadow-xl w-80 text-center z-101">
 						    <p className="text-lg mb-4 text-gray-600">{ message }</p>
 
 						    <button
