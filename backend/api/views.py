@@ -56,13 +56,19 @@ class FrcByUser(APIView):
         else:
             return Response([])
 
+#class FrcList(APIView):
+#    def get(self, request):
+#        frc = RevenueEst2025.objects.values('frc').distinct().using('fin')
+#        res = []
+#        for rec in frc:
+#            res.append(rec['frc'])
+#        return Response(res)
+
 class FrcList(APIView):
     def get(self, request):
-        frc = RevenueEst2025.objects.values('frc').distinct().using('fin')
-        res = []
-        for rec in frc:
-            res.append(rec['frc'])
-        return Response(res)
+        qs = RevenueUsers.objects.using('fin').all()
+        ser = UserSerializer(qs, many=True)
+        return Response(ser.data)
 
 class EstByFrcAPIView(APIView):
     """

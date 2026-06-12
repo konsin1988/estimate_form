@@ -6,7 +6,8 @@ import {
 } from "react";
 
 import { useParams } from "react-router-dom";
-import api from "../services/api";
+import api from "../api/axios";
+import { buildFrcList } from "../scripts/buildFrcList";
 
 type AuthContextType = {
   loading: boolean;
@@ -75,34 +76,26 @@ export default function AuthProvider({
         setUser(res_frc.data[0].user);
         setLogin(res_frc.data[0].login);
 
-        const res_list = await api.get(`/frc/list/`);
-
-        if (res_list.status === 200) {
-          if (res_frc.data[0].frc === "admin") {
-            setIsAdmin(true);
-            setRevenueFrc(res_list.data);
-            setCostsFrc(res_list.data);
-            setIsDup(true);
-          } else {
-            const revenue_frc_list = res_frc.data
-              .filter(
-                (item: any) =>
-                  item.is_revenue === 1 &&
-                  res_list.data.includes(item.frc)
-              )
-              .map((item: any) => item.frc);
-            setRevenueFrc(revenue_frc_list);
-
-            const cost_frc_list = res_frc.data
-              .filter(
-                (item: any) =>
-                  item.is_cost === 1 &&
-                  res_list.data.includes(item.frc)
-              )
-              .map((item: any) => item.frc);
-            setCostsFrc(cost_frc_list);
-            setIsDup(res_frc.data[0].is_dup === 1);
+        if (res_frc.data[0].frc === "admin") {
+          const frc_all = await api.get(`/frc/list/`);
+          console.log(frc_all)
+          if (
+            frc_all.status !== 200 ||
+            frc_all.data.length === 0
+          ) {
+            setIsAuthorized(false);
+            return;
           }
+          const { revenueFrc, costFrc, isDup } = buildFrcList(frc_all.data);
+          setRevenueFrc(revenueFrc);
+          setCostsFrc(costFrc);
+          setIsDup(true);
+          setIsAdmin(true);
+        } else {
+          const { revenueFrc, costFrc, isDup }= buildFrcList(res_frc.data);
+          setRevenueFrc(revenueFrc);
+          setCostsFrc(costFrc);
+          setIsDup(isDup);
         }
       } catch (e) {
         setIsAuthorized(false);

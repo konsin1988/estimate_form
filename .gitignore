@@ -11,6 +11,7 @@ lib64/
 virtualenv/
 .env
 /**/*.xlsx
+info/
 
 /**/pnpm-lock.yaml
 /**/*.csv

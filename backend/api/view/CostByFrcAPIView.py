@@ -43,6 +43,7 @@ class CostByFrcAPIView(APIView):
             [["group", "subgroup"]]
         ) 
 
+
         # plan
         qs = ( 
             CostPlanModel.objects.using('fin')
@@ -57,16 +58,20 @@ class CostByFrcAPIView(APIView):
             .order_by("month_date")
         )
         ser = CostPlanSerializer(qs, many=True)
-        plan = ( 
-            pd.json_normalize(ser.data)
-            .rename(columns={
-                "cost_consolidation": "group", 
-                "cost_1c": "subgroup",
-                "month_amount": "amount",
-                "month_date": "date_dt",
-                })
-            [['date_dt', 'group', 'subgroup', 'amount']]
-        )
+
+        if len(ser.data) > 0:
+            plan = ( 
+                pd.json_normalize(ser.data)
+                .rename(columns={
+                    "cost_consolidation": "group", 
+                    "cost_1c": "subgroup",
+                    "month_amount": "amount",
+                    "month_date": "date_dt",
+                    })
+                [['date_dt', 'group', 'subgroup', 'amount']]
+            )
+        else: 
+            plan = pd.DataFrame(columns=['date_dt', 'group', 'subgroup', 'amount'])
 
         plan = (
             dates['plan']
@@ -81,6 +86,7 @@ class CostByFrcAPIView(APIView):
             .rename(columns={'date_dt': 'month'})
             [['id', 'month', 'month_name', 'source', 'group', 'subgroup', 'amount', 'is_editable']]
         )
+        
 
         
         # estimate 
@@ -134,16 +140,20 @@ class CostByFrcAPIView(APIView):
             .order_by("month_date")
         )
         ser = CostFactSerializer(qs, many=True)
-        fact = (
-            pd.json_normalize(ser.data)
-            .rename(columns={
-                "cons_type": "group",
-                "type_1c": "subgroup",
-                "month_amount": "amount",
-                "month_date": "date_dt",
-            })
-            [['date_dt', 'group', 'subgroup', 'amount']]
-        )
+        
+        if len(ser.data) > 0:
+            fact = (
+                pd.json_normalize(ser.data)
+                .rename(columns={
+                    "cons_type": "group",
+                    "type_1c": "subgroup",
+                    "month_amount": "amount",
+                    "month_date": "date_dt",
+                })
+                [['date_dt', 'group', 'subgroup', 'amount']]
+            )
+        else:
+            fact = pd.DataFrame(columns=['date_dt', 'group', 'subgroup', 'amount'])
 
         fact = (
             dates['fact']
@@ -158,6 +168,7 @@ class CostByFrcAPIView(APIView):
             .rename(columns={'date_dt': 'month'})
             [['id', 'month', 'month_name', 'source', 'group', 'subgroup', 'amount', 'is_editable']]
         )
+
 
         res = (
             pd.concat([plan, est, fact])

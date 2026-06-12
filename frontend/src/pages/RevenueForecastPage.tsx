@@ -23,9 +23,7 @@ export default function RevenueForecastPage() {
             target_user={user}
 	        	target_login={login}
           /> 
-        <div className="fixed top-75/100 left-70/100">
           <SubmitButton frc={frc} is_revenue={1}/>
-        </div>
         </div>
     </main>
   );
