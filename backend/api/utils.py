@@ -33,6 +33,7 @@ def is_editable():
     cur_date = datetime.now()
     cur_day = cur_date.day
     threshold = 8 if cur_date.month != 1 else 16
+    return 1
     return 1 if cur_day < threshold else 0 
 
 def get_dates():
