@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useNumberFormatter } from "../hooks/useNumberFormatter";
+import NumberInput from "../components/NumberInput";
+import dayjs from "dayjs";
 
 import type {
   GroupRow,
@@ -22,7 +24,7 @@ const months = [
   { key: "2026-12-01", name: "Декабрь" },
 ];
 
-const currentMonth = "2026-06-01";
+const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
 
 const columnHelper =
   createColumnHelper<GroupRow | SubgroupRow>();
@@ -109,18 +111,33 @@ export function useCostColumns() {
                 headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black" 
               },
 
-              cell: ({ row }) => {
-                const source =
-                  month.key < currentMonth
-                    ? "Факт"
-                    : "Прогноз";
 
+              cell: ({ row, table }) => {
+                const source = month.key < currentMonth ? "Факт" : "Прогноз";
+                const rawAmount = row.original.values?.[month.key]?.[source]?.amount ?? 0; 
+                const isEditable = row.original.values?.[month.key]?.[source]?.is_editable ?? false;
+                if (!isEditable) {
+                  return <span>{format(rawAmount)}</span>;
+                }
+                const recordId = row.original.values?.[month.key]?.[source]?.id || row.original.id;
                 return (
-                  format(row.original.values?.[
-                    month.key
-                  ]?.[source]?.amount ?? "")
+                  <NumberInput
+                    value={format(rawAmount)}
+                    onChange={newValue => {
+                      table.options.meta?.updateData?.(
+                        recordId,
+                        newValue
+                      );
+                    }}
+                    onBlur={newValue => {
+                      table.options.meta?.saveData(
+                        recordId, 
+                        newValue 
+                      );
+                    }}
+                  />
                 );
-              },
+              }
             }),
           ],
         })

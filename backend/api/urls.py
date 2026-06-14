@@ -1,6 +1,6 @@
 from django.urls import path
 from api.views import *
-from api.view.CostByFrcAPIView import CostByFrcAPIView
+from api.view.CostsViews import CostByFrcAPIView, CostEstSaveAPIView
 from api.view.CostDupAPIView import CostDupAPIView
 
 urlpatterns = [
@@ -13,5 +13,6 @@ urlpatterns = [
     path("api/frc/by_user/", FrcByUser.as_view(), name='frc-by-user'),
     path("api/est/log/", SaveEstLog.as_view(), name="est-log"),
     path("api/costs/", CostByFrcAPIView.as_view(), name="costs-by-frc"),
-    path("api/costs/dup", CostDupAPIView.as_view(), name="costs-dup"),
+    path("api/costs/dup/", CostDupAPIView.as_view(), name="costs-dup"),
+    path("api/cost/save/", CostEstSaveAPIView.as_view(), name="cost-est-save"),
 ]

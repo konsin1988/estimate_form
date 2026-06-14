@@ -18,6 +18,8 @@ import { getDelta } from "../scripts/getDelta";
 import { costApiToTableTransformer } from "../scripts/CostApiToTableTransformer";
 import { useCostColumns } from "../hooks/useCostColumns";
 import type { GroupRow } from "..types/CostTypes";
+import { saveCostValue } from "../api/costs.api";
+import { updateCostValue } from "../scripts/updateCostValue";
 
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь", "Год, всего"];
 
@@ -37,7 +39,6 @@ export default function CostForecastTable ({ frc }: CostForecastProps){
           const raw_data = await getCostData(frc);
           const transformedData = costApiToTableTransformer(raw_data);
           setData(transformedData);
-          console.log(transformedData);
         } catch (error) {
           console.error(error);
         }
@@ -59,6 +60,22 @@ export default function CostForecastTable ({ frc }: CostForecastProps){
           row.type === "group"
             ? row.subRows
             : [],
+
+        meta: {
+          saveData: async (
+            id: number,
+            value: number,
+          ) => { 
+            await saveCostValue(id, value);
+          },
+          updateData: async (
+            id: number,
+            value: number,
+          ) => { 
+            setData(old => updateCostValue(old, id, value));
+            console.log(data);
+          }, 
+        }
     });
 
 
