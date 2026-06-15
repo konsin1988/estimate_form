@@ -4,10 +4,9 @@ import { useAuth } from "../auth/AuthProvider"
 import api from "../api/axios";
 import Modal from "./Modal";
 
-export default function SubmitButton({ frc, is_revenue }){
+export default function SubmitButton({ frc, is_revenue, is_cost }){
   const [isOpen, setOpen] = useState(false);
   const { user, login } = useAuth();
-  const is_cost = 1 - is_revenue;
 
   const buttonSubmitOnClick = async (event) => {
 		event.preventDefault();

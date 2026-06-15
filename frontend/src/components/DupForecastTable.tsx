@@ -13,31 +13,32 @@ import {
 } from "@tanstack/react-table";
 
 import Modal from "./Modal";
-import { getCostData } from "../api/costs.api";
+import { getDupData } from "../api/dup.api";
 import { getDelta } from "../scripts/getDelta";
-import { costApiToTableTransformer } from "../scripts/CostApiToTableTransformer";
-import { useCostColumns } from "../hooks/useCostColumns";
-import type { GroupRow } from "..types/CostTypes";
+import { dupApiToTableTransformer } from "../scripts/DupApiToTableTransformer";
+import { useDupColumns } from "../hooks/useDupColumns";
+import type { DupDivisionRow } from "..types/DupTypes";
 import { saveCostValue } from "../api/costs.api";
-import { updateCostValue } from "../scripts/updateCostValue";
+import { updateDupValue } from "../scripts/updateDupValue";
 
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь", "Год, всего"];
 
-type CostForecastProps = {
+type DupForecastProps = {
   frc: string;
 };
 
 
-export default function CostForecastTable ({ frc }: CostForecastProps){
-    const [ data, setData ] = useState<GroupRow[]>([]);
+export default function DupForecastTable ({ frc }: DupForecastProps){
+    const [ data, setData ] = useState<DupDivisionRow[]>([]);
 
-    const columns = useCostColumns();
+    const columns = useDupColumns();
 
     useEffect(() => {
       const fetchData = async () => {
         try {
-          const raw_data = await getCostData(frc);
-          const transformedData = costApiToTableTransformer(raw_data);
+          const raw_data = await getDupData();
+          const transformedData = dupApiToTableTransformer(raw_data);
+          console.log(transformedData);
           setData(transformedData);
         } catch (error) {
           console.error(error);
@@ -45,6 +46,7 @@ export default function CostForecastTable ({ frc }: CostForecastProps){
       };
       fetchData();
     }, [frc])
+
 
     const table = useReactTable({
         data,
@@ -56,10 +58,15 @@ export default function CostForecastTable ({ frc }: CostForecastProps){
         getExpandedRowModel:
           getExpandedRowModel(),
     
-        getSubRows: row =>
-          row.type === "group"
-            ? row.subRows
-            : [],
+        getSubRows: row => row.subRows ?? [], 
+        //  if (
+        //    row.type === "division" || 
+        //    row.type === "frc"
+        //  ) {
+        //    return row.subRows;
+        //  }
+        //  return [];
+        //};
 
         meta: {
           saveData: async (
@@ -72,7 +79,7 @@ export default function CostForecastTable ({ frc }: CostForecastProps){
             id: number,
             value: number,
           ) => { 
-            setData(old => updateCostValue(old, id, value));
+            setData(old => updateDupValue(old, id, value));
           }, 
         }
     });
@@ -121,9 +128,12 @@ export default function CostForecastTable ({ frc }: CostForecastProps){
               <tr 
                 key={row.id}
                 className={
-                  row.original.type === "group"
-                    ? "font-bold text-[1.18vw] pt-2"
-                    : "text-sm border-y border-collapse border-gray-700"
+                  row.original.type === "division"
+                    ? "font-bold text-md pt-2"
+                    : 
+                      row.original.type === "frc" 
+                      ? "text-sm font-bold text-gray-700 border-y border-collapse border-gray-700"
+                      : "text-sm border-y border-collapse border-gray-700"
                 }
               >
                 {row

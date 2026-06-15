@@ -29,7 +29,7 @@ const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
 const columnHelper =
   createColumnHelper<GroupRow | SubgroupRow>();
 
-export function useCostColumns() {
+export function useDupColumns() {
   const { format, parse, checkNumbers } = useNumberFormatter();
   return useMemo(() => {
     return [

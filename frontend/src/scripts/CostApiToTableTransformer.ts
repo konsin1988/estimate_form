@@ -63,7 +63,6 @@ export function costApiToTableTransformer(
     aggregatedValue.amount += row.amount;
   }
 
-
   return Array.from(groupsMap.values()).map(
     entry => entry.group
   );
