@@ -73,14 +73,13 @@ export default function CostForecastTable ({ frc }: CostForecastProps){
             value: number,
           ) => { 
             setData(old => updateCostValue(old, id, value));
-            console.log(data);
           }, 
         }
     });
 
 
   return (
-      <table className={`border-collapse mb-40`}>
+      <table className={`border-collapse mb-20 mr-10 `}>
         <thead> 
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id}>

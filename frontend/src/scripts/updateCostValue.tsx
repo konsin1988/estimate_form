@@ -70,39 +70,3 @@ export function updateCostValue(
     });
   });
 }
-
-
-//export function updateCostValue(
-//  rows: GroupRow[],
-//  id: number,
-//  value: number
-//): GroupRow[] {
-//  return rows.map(group => ({
-//    ...group,
-//
-//    subRows: group.subRows.map(subgroup => ({
-//      ...subgroup,
-//
-//      values: Object.fromEntries(
-//        Object.entries(subgroup.values).map(
-//          ([month, sources]) => [
-//            month,
-//            Object.fromEntries(
-//              Object.entries(sources).map(
-//                ([source, cell]) => [
-//                  source,
-//                  cell.id === id
-//                    ? {
-//                        ...cell,
-//                        amount: value,
-//                      }
-//                    : cell,
-//                ]
-//              )
-//            ),
-//          ]
-//        )
-//      ),
-//    })),
-//  }));
-//}

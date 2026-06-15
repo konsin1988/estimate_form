@@ -41,7 +41,7 @@ export function useCostColumns() {
             style={{
               paddingLeft: row.depth * 20,
             }}
-            className="text-start px-3 min-w-80 max-w-80"
+            className="text-start px-3 min-w-60 max-w-60"
           >
             {row.getCanExpand() && (
               <button
@@ -142,6 +142,76 @@ export function useCostColumns() {
           ],
         })
       ),
+
+
+      columnHelper.group({
+        id: "year_total",
+      
+        header: "Год, всего",
+      
+        meta: {
+          bgClass: "bg-gray-900 text-white",
+          monthSeparator: true,
+          headerClassName:
+            "sticky top-0 z-30 border-l-2 border-l-black",
+        },
+      
+        columns: [
+          columnHelper.display({
+            id: "year_plan",
+      
+            header: "План",
+            meta: {
+              headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black border-l-2 border-l-black" 
+            },
+      
+            cell: ({ row }) => {
+              const total = months.reduce(
+                (sum, month) =>
+                  sum +
+                  (row.original.values?.[
+                    month.key
+                  ]?.["План"]?.amount ?? 0),
+                0
+              );
+      
+              return format(total);
+            },
+          }),
+      
+
+          columnHelper.display({
+            id: "year_factForecast",
+      
+            header: "Факт+Прогноз",
+
+            meta: {
+              headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black" 
+            },
+      
+            cell: ({ row }) => {
+              const total = months.reduce(
+                (sum, month) => {
+                  const source =
+                    month.key < currentMonth
+                      ? "Факт"
+                      : "Прогноз";
+      
+                  return (
+                    sum +
+                    (row.original.values?.[
+                      month.key
+                    ]?.[source]?.amount ?? 0)
+                  );
+                },
+                0
+              );
+      
+              return format(total);
+            },
+          }),
+        ],
+      }),
     ];
   }, []);
 }
