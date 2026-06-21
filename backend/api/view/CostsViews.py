@@ -11,7 +11,6 @@ from api.serializers import *
 from api.utils import *
 
 
-
 class CostByFrcAPIView(APIView):
     """ /api/costs/?frc_owner=XXX """
     def get(self, request):
@@ -183,7 +182,6 @@ class CostByFrcAPIView(APIView):
 class CostEstSaveAPIView(APIView):
     def put(self, request):
         id = request.data.get("id")
-        print(id)
         value = request.data.get("value")
         qs = CostEstModel.objects.filter(id=id).using('fin')
         qs.update_or_create(

@@ -7,19 +7,18 @@ import dayjs from "dayjs";
 import axios from "axios";
 import { useNumberFormatter } from "../hooks/useNumberFormatter";
 import Modal from "./Modal";
+import { useAuth } from "../auth/AuthProvider"
 
 import { getDelta } from "../scripts/getDelta";
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь", "Год, всего"];
 const ROW_NAMES = ["Выручка", "Контракт", "ВСК", "Прогноз"]; 
 
-export default function RevenueForecastTable({frc, target_user, target_login }) {
+export default function RevenueForecastTable({ frc }) {
     const dispatch = useDispatch();
     const { data, loading, error } = useSelector((state) => state.profile);
     
     const [colsVisible, setColsVisible] = useState(0);
 
-    const user = target_user;
-    const login = target_login;
     const [planByMonth, setPlanByMonth] = useState({}); 
     const [estByMonth, setEstByMonth] = useState({}); 
     const [factByMonth, setFactByMonth] = useState({});

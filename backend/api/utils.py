@@ -54,4 +54,21 @@ def get_dates():
 
     }
 
+def subgroup_to_ru(subgroup: str) -> str:
+    match subgroup:
+        case "est_amount":
+            return "Прогноз"
+        case "hcl_amount":
+            return "ВСК"
+        case "contr_amount":
+            return "Контракт"
+
+def subgroup_to_en(subgroup: str) -> str:
+    match subgroup:
+        case "Прогноз":
+            return "est_amount"
+        case "ВСК":
+            return "hcl_amount"
+        case "Контракт":
+            return "contr_amount"
 

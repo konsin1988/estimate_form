@@ -29,8 +29,10 @@ const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
 const columnHelper =
   createColumnHelper<GroupRow | SubgroupRow>();
 
-export function useDupColumns() {
+export function useDupColumns(hidePreviousMonths) {
   const { format, parse, checkNumbers } = useNumberFormatter();
+  const currentMonthIndex = new Date().getMonth();
+
   return useMemo(() => {
     return [
       columnHelper.accessor("name", {
@@ -65,7 +67,12 @@ export function useDupColumns() {
         ),
       }),
 
-      ...months.map((month, index) => 
+      ...months
+      .filter((month, index) => {
+          if (!hidePreviousMonths) return true; 
+          return index >= currentMonthIndex; 
+        })
+      .map((month, index) => 
         columnHelper.group({
           id: `${month.key}_month`,
 
@@ -213,5 +220,5 @@ export function useDupColumns() {
         ],
       }),
     ];
-  }, []);
+  }, [hidePreviousMonths]);
 }

@@ -1,9 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateField, saveEst } from "../store/estSlice";
-import debounce from "lodash.debounce";
-import dayjs from "dayjs";
-import axios from "axios";
 
 import {
   useReactTable,
@@ -14,24 +10,23 @@ import {
 
 import Modal from "./Modal";
 import { getCostData } from "../api/costs.api";
-import { getDelta } from "../scripts/getDelta";
 import { costApiToTableTransformer } from "../scripts/CostApiToTableTransformer";
 import { useCostColumns } from "../hooks/useCostColumns";
 import type { GroupRow } from "..types/CostTypes";
 import { saveCostValue } from "../api/costs.api";
 import { updateCostValue } from "../scripts/updateCostValue";
 
-const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь", "Год, всего"];
 
 type CostForecastProps = {
   frc: string;
+  hidePreviousMonths: boolean;
 };
 
 
-export default function CostForecastTable ({ frc }: CostForecastProps){
+export default function CostForecastTable ({ frc, hidePreviousMonths }: CostForecastProps){
     const [ data, setData ] = useState<GroupRow[]>([]);
 
-    const columns = useCostColumns();
+    const columns = useCostColumns(hidePreviousMonths);
 
     useEffect(() => {
       const fetchData = async () => {
@@ -45,6 +40,7 @@ export default function CostForecastTable ({ frc }: CostForecastProps){
       };
       fetchData();
     }, [frc])
+
 
     const table = useReactTable({
         data,

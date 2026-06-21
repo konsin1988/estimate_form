@@ -29,8 +29,10 @@ const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
 const columnHelper =
   createColumnHelper<GroupRow | SubgroupRow>();
 
-export function useCostColumns() {
+export function useCostColumns(hidePreviousMonths) {
   const { format, parse, checkNumbers } = useNumberFormatter();
+  const currentMonthIndex = new Date().getMonth();
+
   return useMemo(() => {
     return [
       columnHelper.accessor("name", {
@@ -65,7 +67,12 @@ export function useCostColumns() {
         ),
       }),
 
-      ...months.map((month, index) => 
+      ...months
+      .filter((month, index) => {
+          if (!hidePreviousMonths) return true; 
+          return index >= currentMonthIndex; 
+        })
+      .map((month, index) => 
         columnHelper.group({
           id: `${month.key}_month`,
 
@@ -120,11 +127,13 @@ export function useCostColumns() {
                   return <span>{format(rawAmount)}</span>;
                 }
                 const recordId = row.original.values?.[month.key]?.[source]?.id || row.original.id;
+                //const subgroup = row.original.values?.[month.key]?.[source]?.name || row.original.name; 
+
                 return (
                   <NumberInput
                     value={format(rawAmount)}
                     onChange={newValue => {
-                      table.options.meta?.updateData?.(
+                      table.options.meta?.updateData(
                         recordId,
                         newValue
                       );
@@ -213,5 +222,5 @@ export function useCostColumns() {
         ],
       }),
     ];
-  }, []);
+  }, [hidePreviousMonths]);
 }

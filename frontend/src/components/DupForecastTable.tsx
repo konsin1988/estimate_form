@@ -25,20 +25,20 @@ const MONTHS_RU = ["Январь","Февраль","Март","Апрель","М
 
 type DupForecastProps = {
   frc: string;
+  hidePreviousMonths: boolean;
 };
 
 
-export default function DupForecastTable ({ frc }: DupForecastProps){
+export default function DupForecastTable ({ frc, hidePreviousMonths }: DupForecastProps){
     const [ data, setData ] = useState<DupDivisionRow[]>([]);
 
-    const columns = useDupColumns();
+    const columns = useDupColumns(hidePreviousMonths);
 
     useEffect(() => {
       const fetchData = async () => {
         try {
           const raw_data = await getDupData();
           const transformedData = dupApiToTableTransformer(raw_data);
-          console.log(transformedData);
           setData(transformedData);
         } catch (error) {
           console.error(error);

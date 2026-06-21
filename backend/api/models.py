@@ -93,6 +93,59 @@ class RevenueEstLog(models.Model):
         managed = False
         db_table = 'revenue_est_log'
 
+class RevenuePlanModel(models.Model):
+    id = models.IntegerField(blank=True, 
+                             primary_key=True, 
+                            unique=True
+                             )
+    date_dt = models.DateField(blank=True, null=True)
+    frc = models.CharField(blank=True, null=True)
+    amount = models.DecimalField(max_digits=30, decimal_places=2, blank=True, null=True)
+
+    def __str__(self):
+        return self.frc
+
+    class Meta:
+        managed = False
+        db_table = 'revenue_plan_2025'
+
+
+class RevenueEstModel(models.Model):
+    id = models.IntegerField(blank=True, 
+                             primary_key=True, 
+                            unique=True
+                             )
+    date_dt = models.DateField(blank=True, null=True)
+    estimate_date = models.DateField(blank=True, null=True)
+    frc = models.CharField(blank=True, null=True)
+    est_amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
+    hcl_amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
+    contr_amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
+
+    def __str__(self):
+        return self.company
+
+    class Meta:
+        managed = False
+        db_table = "revenue_est_2025"
+
+class RevenueFactModel(models.Model):
+    id = models.IntegerField(blank=True, 
+                             primary_key=True, 
+                            unique=True
+                             )
+    date_dt = models.DateField(blank=True, null=True)
+    frc = models.CharField(blank=True, null=True)
+    amount = models.DecimalField(max_digits=30, decimal_places=2, blank=True, null=True)
+
+    def __str__(self):
+        return self.doc
+
+    class Meta:
+        managed = False
+        db_table = 'revenue_fact'
+
+
 
 class CostEstModel(models.Model):
     id = models.IntegerField(

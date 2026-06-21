@@ -40,7 +40,7 @@ export function updateCostValue(
   return rows.map(group => {
     const updatedSubRows =
       group.subRows.map(subgroup => ({
-        ...subgroup,
+        ...subgroup, 
 
         values: Object.fromEntries(
           Object.entries(subgroup.values).map(
