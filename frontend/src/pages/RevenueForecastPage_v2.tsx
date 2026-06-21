@@ -21,7 +21,7 @@ export default function RevenueForecastPage() {
           <div className={`fixed top-19/100 h-76/100 w-full overflow-x-auto left-3`}>
             < RevenueForecastTable frc={frc} hidePreviousMonths={hidePreviousMonths} />
           </div>
-          <SubmitButton frc={frc} is_revenue={0} is_cost={1} />
+          <SubmitButton frc={frc} is_revenue={1} is_cost={0} />
     </>
   );
 }
