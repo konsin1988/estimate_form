@@ -9,30 +9,30 @@ import {
 } from "@tanstack/react-table";
 
 import Modal from "./Modal";
-import { getCostData } from "../api/costs.api";
-import { costApiToTableTransformer } from "../scripts/CostApiToTableTransformer";
-import { useCostColumns } from "../hooks/useCostColumns";
+import { getRevenueData } from "../api/revenue.api";
+import { revenueApiToTableTransformer } from "../scripts/RevenueApiToTableTransformer";
+import { useRevenueColumns } from "../hooks/useRevenueColumns";
 import type { GroupRow } from "..types/CostTypes";
-import { saveCostValue } from "../api/costs.api";
-import { updateCostValue } from "../scripts/updateCostValue";
+import { saveRevenueValue } from "../api/revenue.api";
+import { updateRevenueValue } from "../scripts/updateRevenueValue";
 
 
-type CostForecastProps = {
+type Props = {
   frc: string;
   hidePreviousMonths: boolean;
 };
 
 
-export default function CostForecastTable ({ frc, hidePreviousMonths }: CostForecastProps){
+export default function RevenueForecastTable ({ frc, hidePreviousMonths }: Props){
     const [ data, setData ] = useState<GroupRow[]>([]);
 
-    const columns = useCostColumns(hidePreviousMonths);
+    const columns = useRevenueColumns(hidePreviousMonths);
 
     useEffect(() => {
       const fetchData = async () => {
         try {
-          const raw_data = await getCostData(frc);
-          const transformedData = costApiToTableTransformer(raw_data);
+          const raw_data = await getRevenueData(frc);
+          const transformedData = revenueApiToTableTransformer(raw_data);
           setData(transformedData);
         } catch (error) {
           console.error(error);
@@ -60,15 +60,17 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
         meta: {
           saveData: async (
             id: number,
+            field: string,
             value: number,
           ) => { 
-            await saveCostValue(id, value);
+            await saveRevenueValue(id, field, value);
           },
           updateData: async (
             id: number,
+            subgroupName: string,
             value: number,
           ) => { 
-            setData(old => updateCostValue(old, id, value));
+            setData(old => updateRevenueValue(old, id, subgroupName, value));
           }, 
         }
     });

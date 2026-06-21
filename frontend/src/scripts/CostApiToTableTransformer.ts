@@ -1,7 +1,7 @@
 import type { ApiCostRow, GroupRow }  from "../types/CostTypes"; 
 
 export function costApiToTableTransformer(
-  rows: ApiCostRow[] = []
+  rows: ApiCostRow[] = [],
 ): GroupRow[] {
   const groupsMap = new Map();
 
@@ -62,7 +62,6 @@ export function costApiToTableTransformer(
     
     aggregatedValue.amount += row.amount;
   }
-
   return Array.from(groupsMap.values()).map(
     entry => entry.group
   );

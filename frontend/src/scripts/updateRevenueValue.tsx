@@ -4,24 +4,30 @@ import type {
 } from "../types/CostTypes";
 
 function recalculateGroup(group: GroupRow): GroupRow {
-  const values: GroupRow["values"] = {};
+  const values = structuredClone(group.values);
+
+  for (const month of Object.keys(values)) {
+    if (values[month]["Прогноз"]) {
+      values[month]["Прогноз"].amount = 0;
+    }
+  }
 
   for (const subgroup of group.subRows) {
     for (const [month, sources] of Object.entries(
       subgroup.values
     )) {
+      const forecast = sources["Прогноз"];
+
+      if (!forecast) continue;
+
       values[month] ??= {};
 
-      for (const [source, cell] of Object.entries(
-        sources
-      )) {
-        values[month][source] ??= {
-          amount: 0,
-        };
+      values[month]["Прогноз"] ??= {
+        amount: 0,
+      };
 
-        values[month][source].amount +=
-          cell.amount;
-      }
+      values[month]["Прогноз"].amount +=
+        forecast.amount;
     }
   }
 
@@ -31,16 +37,16 @@ function recalculateGroup(group: GroupRow): GroupRow {
   };
 }
 
-
-export function updateCostValue(
+export function updateRevenueValue(
   rows: GroupRow[],
   id: number,
+  subgroupName: string,
   value: number
 ): GroupRow[] {
   return rows.map(group => {
     const updatedSubRows =
       group.subRows.map(subgroup => ({
-        ...subgroup, 
+        ...subgroup,
 
         values: Object.fromEntries(
           Object.entries(subgroup.values).map(
@@ -50,7 +56,8 @@ export function updateCostValue(
                 Object.entries(sources).map(
                   ([source, cell]) => [
                     source,
-                    cell.id === id
+                    cell.id === id &&
+                    subgroup.name === subgroupName
                       ? {
                           ...cell,
                           amount: value,

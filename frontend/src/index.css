@@ -38,12 +38,12 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
+#scrollbar-hide::-webkit-scrollbar {
     width: 0;
 		height: 0;
 		background: transparent;
 }
-.scrollbar-hide {
+#scrollbar-hide {
     -ms-overflow-style: none;
 		scrollbar-width: none;
 }

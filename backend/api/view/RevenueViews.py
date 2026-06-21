@@ -11,74 +11,57 @@ from api.serializers import *
 from api.utils import *
 
 
-class CostByFrcAPIView(APIView):
-    """ /api/costs/?frc_owner=XXX """
+class RevenueByFrcAPIView(APIView):
+    """ /api/revenue/?frc=XXX """
     def get(self, request):
-        frc_owner = request.GET.get("frc_owner")
-        if not frc_owner:
-            return Response({"detail": "frc_owner required"}, status=400)
-        
+        frc = request.GET.get("frc")
+        if not frc:
+            return Response({"detail": "frc required"}, status=400)
+
         year = datetime.now().year
         estimate_dt = datetime.now().date().replace(day=1)
         estimate_date = datetime.strftime(estimate_dt, "%Y-%m-%d")
 
         # dates
         dates = get_dates()
-
-        # frc_mapping
-        qs = CostFrcMappingModel.objects.using('fin').filter(frc=frc_owner)
-        ser = CostFrcMappingSerializer(qs, many=True)
-        frc_mapping = pd.json_normalize(ser.data)
-
-        # consolidation mapping 
-        qs = CostConsolidateMappingModel.objects.using('fin')
-        ser = CostConsolidateMappingSerializer(qs, many=True)
-        consolidate_mapping = pd.json_normalize(ser.data)
-
-        frc_cons = (
-            frc_mapping
-            .merge(consolidate_mapping, how="left", on="type_1c")
-            .rename(columns={"cons_type": "group", "type_1c": "subgroup"})
-            [["group", "subgroup"]]
-        ) 
-
-
+        
         # plan
         qs = ( 
-            CostPlanModel.objects.using('fin')
-            .filter(frc_owner=frc_owner, date_dt__year=year)
+            RevenuePlanModel.objects.using('fin')
+            .filter(frc=frc, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),
                       )
-            .values("month_date", "cost_consolidation", "cost_1c")
+            .values("month_date")
             .annotate(
                 month_amount=Sum("amount"),
             )
             .order_by("month_date")
         )
-        ser = CostPlanSerializer(qs, many=True)
+        ser = RevenuePlanSerializer(qs, many=True)
+
 
         if len(ser.data) > 0:
             plan = ( 
                 pd.json_normalize(ser.data)
                 .rename(columns={
-                    "cost_consolidation": "group", 
-                    "cost_1c": "subgroup",
                     "month_amount": "amount",
                     "month_date": "date_dt",
                     })
-                [['date_dt', 'group', 'subgroup', 'amount']]
+                [['date_dt', 'amount']]
             )
         else: 
-            plan = pd.DataFrame(columns=['date_dt', 'group', 'subgroup', 'amount'])
+            plan = pd.DataFrame(columns=['date_dt', 'amount'])
+        
 
         plan = (
             dates['plan']
-            .merge(frc_cons, how='cross')
-            .merge(plan, how='left', on=['date_dt', 'group', 'subgroup'])
+            .merge(plan, how='left', on=['date_dt'])
             .assign(
                 amount = lambda x: x['amount'].astype('float64').fillna(0),
                 source = 'План',
+                group = "Выручка",
+                subgroup = None,
                 is_editable=0,
                 id=None,
             )
@@ -87,105 +70,118 @@ class CostByFrcAPIView(APIView):
         )
         
 
-        
         # estimate 
         qs = ( 
-            CostEstModel.objects.using('fin')
-                .filter(frc_owner=frc_owner, date_dt__year=year, estimate_date=estimate_date)
+            RevenueEstModel.objects.using('fin')
+                .filter(frc=frc, estimate_date=estimate_date)
                 .values(
                         'id', 'date_dt', 
-                        'cons_type', 'type_1c' 
                     )
                 .annotate(
-                    amount=Coalesce(F('amount'), 0, output_field=DecimalField()),
+                    est_amount=Coalesce(F('est_amount'), 0, output_field=DecimalField()),
+                    hcl_amount=Coalesce(F('hcl_amount'), 0, output_field=DecimalField()),
+                    contr_amount=Coalesce(F('contr_amount'), 0, output_field=DecimalField()),
                 )
+                .order_by("date_dt")
         )
-        ser = CostEstSerializer(qs, many=True)
+        ser = RevenueEstSerializer(qs, many=True)
+        
 
-        est = (
-            pd.json_normalize(ser.data)
-            .rename(columns={
-                "cons_type": "group",
-                "type_1c": "subgroup",
-            })
-            [['id', 'date_dt', 'group', 'subgroup', 'amount']]
-        )
+        if len(ser.data) > 0:
+            est = (
+                pd.json_normalize(ser.data)
+            )
+        else:
+            est = pd.DataFrame(columns=['id', 'date_dt', 'est_amount', 'hcl_amount', 'contr_amount'])
 
         est = (
             dates['est']
-            .merge(frc_cons, how='cross')
-            .merge(est, how='left', on=['date_dt', 'group', 'subgroup'])
+            .merge(est, how='left', on=['date_dt'])
             .assign(
-                amount = lambda x: x['amount'].astype('float64').fillna(0),
+                id = lambda x: x['id'].fillna(0), # hardcode
+                est_amount = lambda x: x['est_amount'].fillna(0).astype('float64'),
+                hcl_amount = lambda x: x['hcl_amount'].fillna(0).astype('float64'),
+                contr_amount = lambda x: x['contr_amount'].fillna(0).astype('float64'),
                 source = 'Прогноз',
+                group='Выручка',
                 is_editable=is_editable(),
             )
             .rename(columns={'date_dt': 'month'})
+            #[['id', 'month', 'month_name', 'source', 'group', 'amount', 'is_editable']]
+        )
+        cols = ['id', 'month', 'month_name', 'source', 'group', 'is_editable']
+        est = ( 
+            pd
+               .melt(
+                est,
+                id_vars=cols,
+                value_vars=[col for col in est.columns if col not in cols],
+                var_name='subgroup',
+                value_name='amount'
+            )
+               .assign(subgroup = lambda x: x['subgroup'].apply(lambda x: subgroup_to_ru(x)))
             [['id', 'month', 'month_name', 'source', 'group', 'subgroup', 'amount', 'is_editable']]
         )
 
-
         # fact
         qs = (
-            CostFactModel.objects.using('fin')
-            .filter(frc_owner=frc_owner, date_dt__year=year)
+            RevenueFactModel.objects.using('fin')
+            .filter(frc=frc, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),
                       )
-            .values("month_date", "cons_type", "type_1c")
+            .values("month_date")
             .annotate(
                 month_amount=Sum("amount"),
             )
-            .order_by("month_date")
         )
-        ser = CostFactSerializer(qs, many=True)
-        
+        ser = RevenueFactSerializer(qs, many=True)
+
         if len(ser.data) > 0:
             fact = (
                 pd.json_normalize(ser.data)
                 .rename(columns={
-                    "cons_type": "group",
-                    "type_1c": "subgroup",
                     "month_amount": "amount",
                     "month_date": "date_dt",
                 })
-                [['date_dt', 'group', 'subgroup', 'amount']]
+                [['date_dt', 'amount']]
             )
         else:
-            fact = pd.DataFrame(columns=['date_dt', 'group', 'subgroup', 'amount'])
+            fact = pd.DataFrame(columns=['date_dt', 'amount'])
+        
 
         fact = (
             dates['fact']
-            .merge(frc_cons, how='cross')
-            .merge(fact, how='left', on=['date_dt', 'group', 'subgroup'])
+            .merge(fact, how='left', on=['date_dt'])
             .assign(
                 amount = lambda x: x['amount'].astype('float64').fillna(0),
                 source = 'Факт',
                 is_editable=0,
                 id=None,
+                group="Выручка",
+                subgroup=None,
             )
             .rename(columns={'date_dt': 'month'})
             [['id', 'month', 'month_name', 'source', 'group', 'subgroup', 'amount', 'is_editable']]
         )
-
-
+        
         res = (
             pd.concat([plan, est, fact])
-            .sort_values(['group', 'subgroup', 'month', 'source'])
-            #.query('(group == "Административные расходы") and (subgroup == "2.1.4. 25. Материальные затраты")')
+            .sort_values(['month', 'source'])
         )
         
         return Response(res.to_dict(orient="records"))
 
 
-
-class CostEstSaveAPIView(APIView):
+class RevenueSaveAPIView(APIView):
     def put(self, request):
         id = request.data.get("id")
+        field = subgroup_to_en(request.data.get("field"))
         value = request.data.get("value")
-        qs = CostEstModel.objects.filter(id=id).using('fin')
-        qs.update_or_create(
-                defaults = {"amount": value }
+        print(f"{field}, {value}, {id}")
+        obj_qs = RevenueEst2025.objects.filter(id=id).using('fin')
+        obj_qs.update_or_create(
+                defaults = {f"{field}": value }
                 )
         result = {
                 "response": request.data, 

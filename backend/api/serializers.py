@@ -25,6 +25,21 @@ class EstLogSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return RevenueEstLog.objects.using('fin').create(**validated_data)
 
+
+class RevenuePlanSerializer(serializers.Serializer):
+    month_date = serializers.DateField() 
+    month_amount = serializers.DecimalField(max_digits=12, decimal_places=2)
+
+class RevenueEstSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RevenueEst2025
+        fields = ["id", "date_dt", "est_amount", "hcl_amount", "contr_amount"]
+
+class RevenueFactSerializer(serializers.Serializer):
+    month_date = serializers.DateField() 
+    month_amount = serializers.DecimalField(max_digits=12, decimal_places=2)
+
+
 class CostEstSerializer(serializers.ModelSerializer):
     class Meta:
         model = CostEstModel 

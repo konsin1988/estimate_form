@@ -29,7 +29,7 @@ const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
 const columnHelper =
   createColumnHelper<GroupRow | SubgroupRow>();
 
-export function useDupColumns(hidePreviousMonths) {
+export function useRevenueColumns(hidePreviousMonths) {
   const { format, parse, checkNumbers } = useNumberFormatter();
   const currentMonthIndex = new Date().getMonth();
 
@@ -127,18 +127,22 @@ export function useDupColumns(hidePreviousMonths) {
                   return <span>{format(rawAmount)}</span>;
                 }
                 const recordId = row.original.values?.[month.key]?.[source]?.id || row.original.id;
+                const subgroupName = row.original.values?.[month.key]?.[source]?.name || row.original.name; 
+
                 return (
                   <NumberInput
                     value={format(rawAmount)}
                     onChange={newValue => {
-                      table.options.meta?.updateData?.(
+                      table.options.meta?.updateData(
                         recordId,
+                        subgroupName,
                         newValue
                       );
                     }}
                     onBlur={newValue => {
                       table.options.meta?.saveData(
                         recordId, 
+                        subgroupName,
                         newValue 
                       );
                     }}

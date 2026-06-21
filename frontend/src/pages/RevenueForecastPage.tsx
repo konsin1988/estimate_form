@@ -7,7 +7,7 @@ import { useAuth } from "../auth/AuthProvider"
 import SubmitButton from "../components/SubmitButton";
 
 export default function RevenueForecastPage() {
-  const { user, login, revenueFrc } = useAuth();
+  const { login, revenueFrc } = useAuth();
   const [ frc, setFrc ] = useState<string | null>(revenueFrc[0])
 
   return (
@@ -20,8 +20,6 @@ export default function RevenueForecastPage() {
           /> 
           <RevenueForecastTable  
             frc={frc}
-            target_user={user}
-	        	target_login={login}
           /> 
           <SubmitButton frc={frc} is_revenue={1} is_cost={0}/>
         </div>
