@@ -118,7 +118,7 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
                 key={row.id}
                 className={
                   row.original.type === "group"
-                    ? "font-bold text-[1.18vw] pt-2"
+                    ? "font-bold text-sm pt-2"
                     : "text-sm border-y border-collapse border-gray-700"
                 }
               >

@@ -19,7 +19,7 @@ export default function HashEntryPage() {
       // save temporarily
       sessionStorage.setItem("hash", hash);
 
-      navigate("/user/revenues", {
+      navigate("/user", {
         replace: true,
       });
     } catch {

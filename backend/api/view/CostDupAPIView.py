@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
-from django.db.models import Max, Sum, Q, F, DecimalField, Value, CharField
+from django.db.models import Case, When, Max, Sum, Q, F, DecimalField, Value, CharField
 from django.db.models.functions import TruncMonth, Coalesce
 from django.db import connections
 
@@ -38,7 +38,7 @@ class CostDupAPIView(APIView):
             from dup_mapping cdm
             cross join dup_frc fi
             union all
-            select cdm.type_1c, cdm.division, cdm.cons_type, null as frc
+            select cdm.type_1c, cdm.division, cdm.cons_type, 'Без ЦФО' as frc
             from fin.cost_dup_mapping cdm
             where cdm.division in ('Прочие расходы') 
             """
@@ -50,7 +50,6 @@ class CostDupAPIView(APIView):
 
         mapping_frc = pd.DataFrame(rows, columns=columns)
 
-
         mapping_frc = (
             mapping_frc
             .rename(columns={
@@ -60,14 +59,22 @@ class CostDupAPIView(APIView):
             [['group', 'subgroup', 'division', 'frc']]
         )
 
+        without_frc = mapping_frc.query('frc == "Без ЦФО"')['subgroup'].to_list()
+
+
         # plan
         qs = ( 
             CostPlanModel.objects.using('fin')
             .filter(frc_owner=frc_owner, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),
+                frc_display=Case(
+                    When(cost_1c__in=without_frc, then=Value("Без ЦФО")),
+                    default="frc",
+                    output_field=CharField(),
+                )
                       )
-            .values("month_date", "frc", "cost_consolidation", "cost_1c")
+            .values("month_date", "frc_display", "cost_consolidation", "cost_1c")
             .annotate(
                 month_amount=Sum("amount"),
             )
@@ -82,6 +89,7 @@ class CostDupAPIView(APIView):
                 "cost_1c": "subgroup",
                 "month_amount": "amount",
                 "month_date": "date_dt",
+                "frc_display": "frc",
                 })
             [['date_dt', 'frc', 'group', 'subgroup', 'amount']]
         )
@@ -99,7 +107,8 @@ class CostDupAPIView(APIView):
             .rename(columns={'date_dt': 'month'})
             [['id', 'month', 'month_name', 'source', 'division', 'frc', 'subgroup', 'amount', 'is_editable']]
         )
-
+        
+        
         # estimate 
         qs = ( 
             CostEstModel.objects.using('fin')
@@ -143,8 +152,13 @@ class CostDupAPIView(APIView):
             .filter(frc_owner=frc_owner, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),
-                      )
-            .values("month_date", "frc", "cons_type", "type_1c")
+                frc_display=Case(
+                    When(type_1c__in=without_frc, then=Value("Без ЦФО")),
+                    default="frc",
+                    output_field=CharField(),
+                )
+            )
+            .values("month_date", "frc_display", "cons_type", "type_1c")
             .annotate(
                 month_amount=Sum("amount"),
             )
@@ -158,6 +172,7 @@ class CostDupAPIView(APIView):
                 "type_1c": "subgroup",
                 "month_amount": "amount",
                 "month_date": "date_dt",
+                "frc_display": "frc",
             })
             [['date_dt', 'frc', 'group', 'subgroup', 'amount']]
         )

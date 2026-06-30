@@ -14,6 +14,24 @@ import DupCostPage from "./pages/DupCostPage";
 import AuthProvider from "./auth/AuthProvider";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import AccessDeniedPage from "./pages/AccessDeniedPage";
+import { useAuth } from "./auth/AuthProvider";
+
+
+const DynamicIndexRedirect = () => {
+  const { revenueFrc, costsFrc, isDup } = useAuth();
+  console.log(`${revenueFrc.length}, ${revenueFrc}`);
+  if (revenueFrc && revenueFrc.length > 0) {
+    return <Navigate to="revenues" replace />;
+  }
+  if (costsFrc && costsFrc.length > 0) {
+    return <Navigate to="costs" replace />;
+  }
+  if (isDup) {
+    return <Navigate to="dup" replace />;
+  }
+  return <Navigate to="/access-denied" replace />;
+};
+
 
 export default function App() {
     return (
@@ -39,7 +57,7 @@ export default function App() {
                 element={<Layout />}
               >
                 <Route index 
-                  element={<Navigate to="revenues" replace />}
+                  element={<DynamicIndexRedirect />}
                 />
 
                 <Route 

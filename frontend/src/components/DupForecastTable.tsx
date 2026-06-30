@@ -59,14 +59,6 @@ export default function DupForecastTable ({ frc, hidePreviousMonths }: DupForeca
           getExpandedRowModel(),
     
         getSubRows: row => row.subRows ?? [], 
-        //  if (
-        //    row.type === "division" || 
-        //    row.type === "frc"
-        //  ) {
-        //    return row.subRows;
-        //  }
-        //  return [];
-        //};
 
         meta: {
           saveData: async (

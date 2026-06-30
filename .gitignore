@@ -12,6 +12,8 @@ virtualenv/
 .env
 /**/*.xlsx
 info/
+tars/
+/**/*.tar
 
 /**/pnpm-lock.yaml
 /**/*.csv
