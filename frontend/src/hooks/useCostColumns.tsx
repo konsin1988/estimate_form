@@ -3,6 +3,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { useNumberFormatter } from "../hooks/useNumberFormatter";
 import NumberInput from "../components/NumberInput";
 import dayjs from "dayjs";
+import ToggleCollapseButton from "../components/ToggleCollapseButton";
 
 import type {
   GroupRow,
@@ -29,14 +30,16 @@ const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
 const columnHelper =
   createColumnHelper<GroupRow | SubgroupRow>();
 
-export function useCostColumns(hidePreviousMonths) {
+export function useCostColumns(hidePreviousMonths, frc) {
   const { format, parse, checkNumbers } = useNumberFormatter();
   const currentMonthIndex = new Date().getMonth();
 
   return useMemo(() => {
     return [
       columnHelper.accessor("name", {
-        header: "",
+        header: ({ table }) => (
+          <ToggleCollapseButton table={table}  />
+        ),
 
         cell: ({ row, getValue }) => (
           <div
@@ -60,7 +63,9 @@ export function useCostColumns(hidePreviousMonths) {
 
             <span className={`${row.getCanExpand()
                   ? "ml-2" 
-                  : ""}`}>
+                  : ""}
+                  ${row.getIsExpanded() && row.depth === 0 ? "text-gray-900 font-bold underline" : ""}
+                  `}>
               {getValue()}
             </span>
           </div>
@@ -84,7 +89,7 @@ export function useCostColumns(hidePreviousMonths) {
                 ? "bg-gray-800"
                 : "bg-gray-700"}`,
             monthSeparator: true,
-            headerClassName: "sticky top-0 z-30 border-none" 
+            headerClassName: "sticky top-0 z-30 border-none shadow-[2px_0_5px_rgba(0,0,0,0.1)]" 
           },
 
           columns: [

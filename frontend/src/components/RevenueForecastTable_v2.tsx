@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -24,9 +24,39 @@ type Props = {
 
 
 export default function RevenueForecastTable ({ frc, hidePreviousMonths }: Props){
-    const [ data, setData ] = useState<GroupRow[]>([]);
+    const mainTableRef = useRef(null);
+    const minimapRef = useRef(null);
 
+    const [ data, setData ] = useState<GroupRow[]>([]);
     const columns = useRevenueColumns(hidePreviousMonths);
+
+    const handleMinimapScroll = () => {
+      if (isSyncingMini.current) return;
+      
+      const main = mainTableContainerRef.current;
+      const mini = minimapRef.current;
+      if (!main || !mini) return;
+
+      isSyncingMain.current = true;
+      const ratio = mini.scrollLeft / (mini.scrollWidth - mini.clientWidth);
+      main.scrollLeft = ratio * (main.scrollWidth - main.clientWidth);
+
+    };
+    const handleMainScroll = () => {
+      if (isSyncingMain.current) return;
+
+      const main = mainTableContainerRef.current;
+      const mini = minimapRef.current;
+      if (!main || !mini) return;
+
+      isSyncingMini.current = true;
+      const ratio = main.scrollLeft / (main.scrollWidth - main.clientWidth);
+      mini.scrollLeft = ratio * (mini.scrollWidth - mini.clientWidth);
+
+      setTimeout(() => { isSyncingMini.current = false; }, 50);
+    };
+
+      
 
     useEffect(() => {
       const fetchData = async () => {
@@ -34,6 +64,8 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths }: Props
           const raw_data = await getRevenueData(frc);
           const transformedData = revenueApiToTableTransformer(raw_data);
           setData(transformedData);
+          
+          table.toggleAllRowsExpanded(true)
         } catch (error) {
           console.error(error);
         }
@@ -151,5 +183,5 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths }: Props
             ))}
         </tbody>
       </table>
-  );
+    );
 }

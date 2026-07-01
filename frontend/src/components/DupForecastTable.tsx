@@ -121,7 +121,7 @@ export default function DupForecastTable ({ frc, hidePreviousMonths }: DupForeca
                 key={row.id}
                 className={
                   row.original.type === "division"
-                    ? "font-bold text-md pt-2"
+                    ? "font-bold text-sm pt-2 text-gray-900"
                     : 
                       row.original.type === "frc" 
                       ? "text-sm font-bold text-gray-700 border-y border-collapse border-gray-700"
