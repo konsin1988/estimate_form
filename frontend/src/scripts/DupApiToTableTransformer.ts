@@ -64,8 +64,7 @@ export function dupApiToTableTransformer(
       );
     }
 
-    const frcName =
-      row.frc ?? "Без ЦФО";
+    const frcName = row.frc ;
 
     //let frcEntry =
     //  divisionEntry.frcMap.get(row.frc); 

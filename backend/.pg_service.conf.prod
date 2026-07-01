@@ -1,6 +1,6 @@
 [revenue]
 host=172.16.3.158
-user=d_konshin
-password=Rjymiby2003
+user=dba
+password=!QAZ2wsx
 dbname=skud_va
 port=5432

@@ -45,10 +45,14 @@ class CostEstSerializer(serializers.ModelSerializer):
         model = CostEstModel 
         fields= ["id", "date_dt", "cons_type", "type_1c", "amount"]
 
-class CostDupEstSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CostEstModel 
-        fields= ["id", "date_dt", "frc", "cons_type", "type_1c", "amount"]
+class CostDupEstSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    date_dt = serializers.DateField() 
+    type_1c = serializers.CharField()
+    frc = serializers.CharField()
+    cons_type = serializers.CharField()
+    type_1c = serializers.CharField()
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2)
 
 class CostPlanSerializer(serializers.Serializer):
     month_date = serializers.DateField() 
@@ -57,7 +61,7 @@ class CostPlanSerializer(serializers.Serializer):
     month_amount = serializers.DecimalField(max_digits=12, decimal_places=2)
 
 class CostDupPlanSerializer(CostPlanSerializer):
-    frc = serializers.CharField()
+    frc_display = serializers.CharField()
 
 class CostFactSerializer(serializers.Serializer):
     month_date = serializers.DateField() 
@@ -66,7 +70,7 @@ class CostFactSerializer(serializers.Serializer):
     month_amount = serializers.DecimalField(max_digits=12, decimal_places=2)
 
 class CostDupFactSerializer(CostFactSerializer):
-    frc = serializers.CharField()
+    frc_display = serializers.CharField()
 
 
 class CostFrcMappingSerializer(serializers.ModelSerializer):

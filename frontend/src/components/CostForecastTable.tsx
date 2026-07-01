@@ -26,7 +26,7 @@ type CostForecastProps = {
 export default function CostForecastTable ({ frc, hidePreviousMonths }: CostForecastProps){
     const [ data, setData ] = useState<GroupRow[]>([]);
 
-    const columns = useCostColumns(hidePreviousMonths);
+    const columns = useCostColumns(hidePreviousMonths, frc);
 
     useEffect(() => {
       const fetchData = async () => {
@@ -34,6 +34,7 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
           const raw_data = await getCostData(frc);
           const transformedData = costApiToTableTransformer(raw_data);
           setData(transformedData);
+          table.setExpanded({}); 
         } catch (error) {
           console.error(error);
         }
@@ -51,7 +52,7 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
     
         getExpandedRowModel:
           getExpandedRowModel(),
-    
+
         getSubRows: row =>
           row.type === "group"
             ? row.subRows
@@ -72,7 +73,6 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
           }, 
         }
     });
-
 
   return (
       <table className={`border-collapse mb-20 mr-10 `}>
@@ -118,7 +118,7 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
                 key={row.id}
                 className={
                   row.original.type === "group"
-                    ? "font-bold text-[1.18vw] pt-2"
+                    ? "font-bold text-sm pt-2"
                     : "text-sm border-y border-collapse border-gray-700"
                 }
               >

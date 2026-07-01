@@ -3,6 +3,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { useNumberFormatter } from "../hooks/useNumberFormatter";
 import NumberInput from "../components/NumberInput";
 import dayjs from "dayjs";
+import ToggleMultiLevelButton from "../components/ToggleMultiLevelButton";
 
 import type {
   GroupRow,
@@ -36,7 +37,9 @@ export function useDupColumns(hidePreviousMonths) {
   return useMemo(() => {
     return [
       columnHelper.accessor("name", {
-        header: "",
+        header: ({ table }) => (
+          <ToggleMultiLevelButton table={table} /> 
+        ),
 
         cell: ({ row, getValue }) => (
           <div
@@ -50,7 +53,7 @@ export function useDupColumns(hidePreviousMonths) {
                 onClick={
                   row.getToggleExpandedHandler()
                 }
-                className="shrink-0 mt-0.5"
+                className={`shrink-0 mt-0.5`}
               >
                 {row.getIsExpanded()
                   ? "−"
@@ -60,7 +63,12 @@ export function useDupColumns(hidePreviousMonths) {
 
             <span className={`${row.getCanExpand()
                   ? "ml-2" 
-                  : ""}`}>
+                  : ""}
+                  ${row.depth === 0 ? "text-black": ''}
+                  ${row.depth === 1 ? "text-gray-600": ''}
+                  ${row.getIsExpanded() && row.depth === 0 ? "text-red-400 underline" : ""}
+                  ${row.getIsExpanded() && row.depth === 1 ? "text-gray-900 font-bold underline" : ""}
+                  `}>
               {getValue()}
             </span>
           </div>

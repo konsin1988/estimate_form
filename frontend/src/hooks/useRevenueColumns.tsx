@@ -3,6 +3,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { useNumberFormatter } from "../hooks/useNumberFormatter";
 import NumberInput from "../components/NumberInput";
 import dayjs from "dayjs";
+import ToggleCollapseButton from "../components/ToggleCollapseButton";
 
 import type {
   GroupRow,
