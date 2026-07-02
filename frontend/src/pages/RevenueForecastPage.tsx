@@ -1,28 +1,27 @@
-import React from "react";
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
+import { useAuth } from "../auth/AuthProvider";
 import FrcChoice from "../components/FrcChoice";
-import RevenueForecastTable from "../components/RevenueForecastTable";
-import { useAuth } from "../auth/AuthProvider"
 import SubmitButton from "../components/SubmitButton";
+import RevenueForecastTable from "../components/RevenueForecastTable";
+import { useOutletContext } from 'react-router-dom';
 
 export default function RevenueForecastPage() {
-  const { login, revenueFrc } = useAuth();
-  const [ frc, setFrc ] = useState<string | null>(revenueFrc[0])
+  const {login, revenueFrc} = useAuth();
+  const [ frc, setFrc ] = useState<string>(revenueFrc[0]);
+  const [ hidePreviousMonths ] = useOutletContext();
 
   return (
-    <main className="pt-55 min-w-screen"> 
-        <div className="overflow-x-auto flex flex-col justify-center align-center h-full">
+    <>
           <FrcChoice
             frc={frc}
 	        	setFrc={setFrc}
 	        	listFrc={revenueFrc} 
           /> 
-          <RevenueForecastTable  
-            frc={frc}
-          /> 
-          <SubmitButton frc={frc} is_revenue={1} is_cost={0}/>
-        </div>
-    </main>
+          <div className={`fixed top-19/100 h-76/100 w-full overflow-x-auto left-3`}>
+            < RevenueForecastTable frc={frc} hidePreviousMonths={hidePreviousMonths} />
+          </div>
+          <SubmitButton frc={frc} is_revenue={1} is_cost={0} />
+    </>
   );
 }
