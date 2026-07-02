@@ -8,7 +8,7 @@ import {
 import Layout from "./components/Layout";
 
 import HashEntryPage from "./pages/HashEntryPage";
-import RevenueForecastPage from "./pages/RevenueForecastPage_v2";
+import RevenueForecastPage from "./pages/RevenueForecastPage";
 import CostForecastPage from "./pages/CostForecastPage";
 import DupCostPage from "./pages/DupCostPage";
 import AuthProvider from "./auth/AuthProvider";
