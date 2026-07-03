@@ -18,7 +18,11 @@ export default function RevenueForecastPage() {
 	        	setFrc={setFrc}
 	        	listFrc={revenueFrc} 
           /> 
-          <div className={`fixed top-19/100 h-76/100 w-full overflow-x-auto left-3`}>
+          <div className={`
+                    fixed top-[19%] h-[67%] 
+                    overflow-x-auto left-3 right-0 flex 
+                    flex-col items-start custom-scrollbar
+            `}>
             < RevenueForecastTable frc={frc} hidePreviousMonths={hidePreviousMonths} />
           </div>
           <SubmitButton frc={frc} is_revenue={1} is_cost={0} />

@@ -75,7 +75,7 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
     });
 
   return (
-      <table className={`border-collapse mb-20 mr-10 `}>
+      <table className={`table-fixed w-max border-collapse mb-5 mr-10 `}>
         <thead> 
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id}>
@@ -84,7 +84,7 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
                   key={header.id}
                   colSpan={header.colSpan}
                   className={`border min-w-28 border-gray-400
-                              py-1 text-sm text-gray-700 
+                              py-1 h-9 w-28 text-sm text-gray-700 
                               ${header.column.columnDef.meta?.headerClassName ?? ""}
                               ${header.column.columnDef.meta?.monthSeparator 
                                 ? "border-l-2 border-l-gray-800 "
@@ -129,7 +129,7 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
                       key={cell.id}
                       className={`
                           border border-collapse
-                          px-2 py-1 text-center 
+                          px-2 py-1 h-9 text-center 
                           ${cell.column.id.endsWith("_plan")
                             ? "border-l-2 border-l-black bg-gray-100"
                             : ""}

@@ -46,7 +46,7 @@ export function useCostColumns(hidePreviousMonths, frc) {
             style={{
               paddingLeft: row.depth * 20,
             }}
-            className="text-start px-3 min-w-60 max-w-60"
+            className="text-start px-3 min-w-60 max-w-60 " 
           >
             {row.getCanExpand() && (
               <button
