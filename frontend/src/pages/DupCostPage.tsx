@@ -12,7 +12,11 @@ export default function DupCostPage() {
 
   return (
     <>
-      <div className={`fixed top-19/100 h-76/100 w-full overflow-auto left-3`}>
+      <div className={`
+                    fixed top-[19%] h-[67%] 
+                    overflow-x-auto left-3 right-0 flex 
+                    flex-col items-start custom-scrollbar
+        `}>
         < DupForecastTable frc={frc} hidePreviousMonths={hidePreviousMonths} />
       </div>
       <SubmitButton frc={frc} is_revenue={0} is_cost={0} />
