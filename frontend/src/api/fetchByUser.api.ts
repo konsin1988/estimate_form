@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "./axios";
 
 export const fetchFrcByUser = async (hash: string) => {
 		return api.get(`/frc/by_user?user=${encodeURIComponent(hash)}`)

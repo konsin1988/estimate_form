@@ -42,8 +42,9 @@ export default function SubmitButton({ frc, is_revenue, is_cost }){
         border 
         rounded-md 
         border-gray-800
-        `} onClick={buttonSubmitOnClick}>
-
+        `} 
+        onClick={buttonSubmitOnClick}
+        >
 			      Подтвердить ввод
 			  </button>
       </div>

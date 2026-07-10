@@ -7,7 +7,7 @@ export function useNumberFormatter() {
     }, []);
 
     const parse = useCallback((value) => {
-	if (value == null || value === "") return 0;
+	if (value == null || value === "") return 0; 
 	const numeric = value.toString().replace(/\s/g, "");
 	return Number(numeric)
     }, []);

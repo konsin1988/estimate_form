@@ -13,39 +13,50 @@ export default function NumberInput({
   onBlur,
 }: Props) {
   const { format, parse, checkNumbers } = useNumberFormatter();
-  const [displayValue, setDisplayValue] =
-    useState(format(value));
+  const [displayValue, setDisplayValue] = useState(format(value));
+  const [isFocused, setIsFocused] = useState(false);
   
 
   useEffect(() => {
-    setDisplayValue(format(parse(value)));
+    if (value === "0" && isFocused){
+      setDisplayValue("");
+    } else {
+      setDisplayValue(format(parse(value)));
+    }
   }, [value]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const numericValue = parse(checkNumbers(
-      e.target.value
-    ));
-
-    setDisplayValue(
-      format(numericValue)
-    );
-
+    const numericValue = parse(checkNumbers(e.target.value));
     onChange(numericValue);
   };
+
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    if (parse(displayValue) === 0) {
+      setDisplayValue("");
+    }
+  };
+
 
   const handleBlur = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
+
+    setIsFocused(false);
+    e.target.value.trim() === "" && setDisplayValue("0");
     const numericValue = parse(checkNumbers(e.target.value));
+    onChange(numericValue);
     onBlur(numericValue);
   };
 
   return (
     <input
       value={displayValue}
-      onChange={handleChange}
+      onFocus={handleFocus}
+      onChange={handleChange} 
       onBlur={handleBlur}
       className="w-full text-center px-1 py-0.5 text-gray-700 bg-blue-100 focus:bg-[#fff9eb]"
     />
