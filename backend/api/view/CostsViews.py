@@ -192,3 +192,17 @@ class CostEstSaveAPIView(APIView):
                 "status": status.HTTP_201_CREATED
                 }
         return Response(result)
+
+class CostEstSaveAPIView(APIView):
+    def put(self, request):
+        changes = request.data.get("changes", [])
+        for item in changes:
+            id = item["id"]
+            value = item["value"]
+            CostEstModel.objects.using("fin").filter(id=id).update(amount=value)
+        return Response(
+            {
+                "saved":len(changes)
+            },
+            status=status.HTTP_201_CREATED
+        )

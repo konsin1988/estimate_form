@@ -175,16 +175,15 @@ class RevenueByFrcAPIView(APIView):
 
 class RevenueSaveAPIView(APIView):
     def put(self, request):
-        id = request.data.get("id")
-        field = subgroup_to_en(request.data.get("field"))
-        value = request.data.get("value")
-        print(f"{field}, {value}, {id}")
-        obj_qs = RevenueEst2025.objects.filter(id=id).using('fin')
-        obj_qs.update_or_create(
-                defaults = {f"{field}": value }
-                )
-        result = {
-                "response": request.data, 
-                "status": status.HTTP_201_CREATED
-                }
-        return Response(result)
+        changes = request.data.get("changes", [])
+        for item in changes:
+            id = item["id"]
+            field = subgroup_to_en(item["subgroupName"])
+            value = item["value"]
+            RevenueEst2025.objects.using("fin").filter(id=id).update(**{field:value})
+        return Response(
+            {
+                "saved":len(changes)
+            },
+            status=status.HTTP_201_CREATED
+        )

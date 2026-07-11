@@ -13,17 +13,25 @@ import { getRevenueData } from "../api/revenue.api";
 import { revenueApiToTableTransformer } from "../scripts/RevenueApiToTableTransformer";
 import { useRevenueColumns } from "../hooks/useRevenueColumns";
 import type { GroupRow } from "..types/CostTypes";
-import { saveRevenueValue } from "../api/revenue.api";
 import { updateRevenueValue } from "../scripts/updateRevenueValue";
 
 
 type Props = {
   frc: string;
   hidePreviousMonths: boolean;
+  setPendingChanges: React.Dispatch<
+    React.SetStateAction<
+      {
+        id: number;
+        field: string;
+        value: number;
+      }[]
+    >
+  >;
 };
 
 
-export default function RevenueForecastTable ({ frc, hidePreviousMonths }: Props){
+export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPendingChanges }: Props){
     const mainTableRef = useRef(null);
     const minimapRef = useRef(null);
 
@@ -90,18 +98,30 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths }: Props
             : [],
 
         meta: {
-          saveData: async (
-            id: number,
-            field: string,
-            value: number,
-          ) => { 
-            await saveRevenueValue(id, field, value);
-          },
           updateData: async (
             id: number,
             subgroupName: string,
             value: number,
           ) => { 
+            setPendingChanges(old => {
+                const exists = old.some(
+                    x =>
+                        x.id === id &&
+                        x.subgroupName === subgroupName
+                );
+            
+                if (exists) {
+                    return old.map(x =>
+                        x.id === id &&
+                        x.subgroupName === subgroupName
+                            ? { ...x, value }
+                            : x
+                    );
+                }
+            
+                return [...old, { id, subgroupName, value }];
+            });
+
             setData(old => updateRevenueValue(old, id, subgroupName, value));
           }, 
         }

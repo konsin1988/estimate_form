@@ -144,12 +144,6 @@ export function useDupColumns(hidePreviousMonths) {
                         newValue
                       );
                     }}
-                    onBlur={newValue => {
-                      table.options.meta?.saveData(
-                        recordId, 
-                        newValue 
-                      );
-                    }}
                   />
                 );
               }
