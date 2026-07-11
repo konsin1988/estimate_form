@@ -5,11 +5,23 @@ import FrcChoice from "../components/FrcChoice";
 import SubmitButton from "../components/SubmitButton";
 import CostForecastTable from "../components/CostForecastTable";
 import { useOutletContext } from 'react-router-dom';
+import { saveCostsValues } from "../api/costs.api";
 
 export default function CostForecastPage() {
   const {login, costsFrc} = useAuth();
   const [ frc, setFrc ] = useState<string>(costsFrc[0]);
   const [ hidePreviousMonths ] = useOutletContext();
+  const [pendingChanges, setPendingChanges] = useState<
+    {
+      id: number;
+      value: number;
+    }[]
+  >([]);
+
+  const handleSubmit = async()=>{
+    await saveCostsValues(pendingChanges);
+    setPendingChanges([]);
+  };
 
   return (
     <>
@@ -23,9 +35,13 @@ export default function CostForecastPage() {
                     overflow-x-auto left-3 right-0 flex 
                     flex-col items-start custom-scrollbar
                     `}>
-            < CostForecastTable frc={frc} hidePreviousMonths={hidePreviousMonths} />
+            < CostForecastTable 
+              frc={frc} 
+              hidePreviousMonths={hidePreviousMonths} 
+              setPendingChanges={setPendingChanges}
+            />
           </div>
-          <SubmitButton frc={frc} is_revenue={0} is_cost={1} />
+          <SubmitButton frc={frc} is_revenue={0} is_cost={1} onSubmit={handleSubmit}/>
     </>
   );
 }

@@ -12,23 +12,17 @@ export const getRevenueData = async (frc: string) => {
 }
 
 
-export const saveRevenueValue = async (
-  id: number,
-  field: string,
-  value: number
-) => {
-  try {
-    const res = await api.put(
-      "/revenue/save/",
-      {
-        id,
-        field,
-        value,
-      }
-    );
-    return res.data;
-  } catch (error) {
-    console.error("Failed to save revenue", error);
-    throw error;
-  }
+export const saveRevenueValues = async (
+  changes:{
+    id:number;
+    field:string;
+    value:number;
+  }[]
+)=>{
+  const res = await api.put(
+    "/revenue/save/",
+    { changes }
+  );
+
+  return res.data;
 };

@@ -4,13 +4,11 @@ import { useNumberFormatter } from "../hooks/useNumberFormatter";
 type Props = {
   value: number;
   onChange: (value: string) => void;
-  onBlur: (value: number) => void;
 };
 
 export default function NumberInput({
   value,
   onChange,
-  onBlur,
 }: Props) {
   const { format, parse, checkNumbers } = useNumberFormatter();
   const [displayValue, setDisplayValue] = useState(format(value));
@@ -49,7 +47,6 @@ export default function NumberInput({
     e.target.value.trim() === "" && setDisplayValue("0");
     const numericValue = parse(checkNumbers(e.target.value));
     onChange(numericValue);
-    onBlur(numericValue);
   };
 
   return (

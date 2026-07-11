@@ -13,17 +13,24 @@ import { getCostData } from "../api/costs.api";
 import { costApiToTableTransformer } from "../scripts/CostApiToTableTransformer";
 import { useCostColumns } from "../hooks/useCostColumns";
 import type { GroupRow } from "..types/CostTypes";
-import { saveCostValue } from "../api/costs.api";
 import { updateCostValue } from "../scripts/updateCostValue";
 
 
 type CostForecastProps = {
   frc: string;
   hidePreviousMonths: boolean;
+  setPendingChanges: React.Dispatch<
+    React.SetStateAction<
+      {
+        id: number;
+        value: number;
+      }[]
+    >
+  >;
 };
 
 
-export default function CostForecastTable ({ frc, hidePreviousMonths }: CostForecastProps){
+export default function CostForecastTable ({ frc, hidePreviousMonths, setPendingChanges }: CostForecastProps){
     const [ data, setData ] = useState<GroupRow[]>([]);
 
     const columns = useCostColumns(hidePreviousMonths, frc);
@@ -59,16 +66,28 @@ export default function CostForecastTable ({ frc, hidePreviousMonths }: CostFore
             : [],
 
         meta: {
-          saveData: async (
-            id: number,
-            value: number,
-          ) => { 
-            await saveCostValue(id, value);
-          },
           updateData: async (
             id: number,
             value: number,
           ) => { 
+
+            setPendingChanges(old => {
+                const exists = old.some(
+                    x =>
+                        x.id === id 
+                );
+            
+                if (exists) {
+                    return old.map(x =>
+                        x.id === id 
+                            ? { ...x, value }
+                            : x
+                    );
+                }
+            
+                return [...old, { id, value }];
+            });
+
             setData(old => updateCostValue(old, id, value));
           }, 
         }

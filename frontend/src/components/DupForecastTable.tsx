@@ -18,7 +18,6 @@ import { getDelta } from "../scripts/getDelta";
 import { dupApiToTableTransformer } from "../scripts/DupApiToTableTransformer";
 import { useDupColumns } from "../hooks/useDupColumns";
 import type { DupDivisionRow } from "..types/DupTypes";
-import { saveCostValue } from "../api/costs.api";
 import { updateDupValue } from "../scripts/updateDupValue";
 
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь", "Год, всего"];
@@ -26,10 +25,18 @@ const MONTHS_RU = ["Январь","Февраль","Март","Апрель","М
 type DupForecastProps = {
   frc: string;
   hidePreviousMonths: boolean;
+  setPendingChanges: React.Dispatch<
+    React.SetStateAction<
+      {
+        id: number;
+        value: number;
+      }[]
+    >
+  >;
 };
 
 
-export default function DupForecastTable ({ frc, hidePreviousMonths }: DupForecastProps){
+export default function DupForecastTable ({ frc, hidePreviousMonths, setPendingChanges }: DupForecastProps){
     const [ data, setData ] = useState<DupDivisionRow[]>([]);
 
     const columns = useDupColumns(hidePreviousMonths);
@@ -61,16 +68,28 @@ export default function DupForecastTable ({ frc, hidePreviousMonths }: DupForeca
         getSubRows: row => row.subRows ?? [], 
 
         meta: {
-          saveData: async (
-            id: number,
-            value: number,
-          ) => { 
-            await saveCostValue(id, value);
-          },
           updateData: async (
             id: number,
             value: number,
           ) => { 
+
+            setPendingChanges(old => {
+                const exists = old.some(
+                    x =>
+                        x.id === id 
+                );
+            
+                if (exists) {
+                    return old.map(x =>
+                        x.id === id 
+                            ? { ...x, value }
+                            : x
+                    );
+                }
+            
+                return [...old, { id, value }];
+            });
+
             setData(old => updateDupValue(old, id, value));
           }, 
         }

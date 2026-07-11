@@ -140,13 +140,6 @@ export function useRevenueColumns(hidePreviousMonths) {
                         newValue
                       );
                     }}
-                    onBlur={newValue => {
-                      table.options.meta?.saveData(
-                        recordId, 
-                        subgroupName,
-                        newValue 
-                      );
-                    }}
                   />
                 );
               }

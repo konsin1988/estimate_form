@@ -4,20 +4,14 @@ import { useAuth } from "../auth/AuthProvider"
 import api from "../api/axios";
 import Modal from "./Modal";
 
-export default function SubmitButton({ frc, is_revenue, is_cost }){
+export default function SubmitButton({ frc, is_revenue, is_cost, onSubmit }){
   const [isOpen, setOpen] = useState(false);
   const { user, login } = useAuth();
 
   const buttonSubmitOnClick = async (event) => {
 		event.preventDefault();
 
-		const response = await api.post('/est/log/', {
-		    user: user,
-		    login: login,
-		    frc: frc,
-        is_revenue: is_revenue,
-        is_cost: is_cost,
-    });
+    await onSubmit();
 		setOpen(true);
   }
   return (
@@ -45,7 +39,7 @@ export default function SubmitButton({ frc, is_revenue, is_cost }){
         `} 
         onClick={buttonSubmitOnClick}
         >
-			      Подтвердить ввод
+			     Сохранить данные 
 			  </button>
       </div>
       </div>
