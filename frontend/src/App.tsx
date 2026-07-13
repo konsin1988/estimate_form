@@ -19,7 +19,6 @@ import { useAuth } from "./auth/AuthProvider";
 
 const DynamicIndexRedirect = () => {
   const { revenueFrc, costsFrc, isDup } = useAuth();
-  console.log(`${revenueFrc.length}, ${revenueFrc}`);
   if (revenueFrc && revenueFrc.length > 0) {
     return <Navigate to="revenues" replace />;
   }
