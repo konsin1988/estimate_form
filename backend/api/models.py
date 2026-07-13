@@ -93,6 +93,25 @@ class RevenueEstLog(models.Model):
         managed = False
         db_table = 'revenue_est_log'
 
+
+class EstimateLogsModel(models.Model):
+    user = models.CharField(max_length=255, db_column='user')
+    login = models.CharField(max_length=255)
+    frc = models.CharField(max_length=255)
+    is_revenue = models.BooleanField(default=False)
+    last_visited = models.DateTimeField()
+    last_updated = models.DateTimeField(null=True, blank=True)
+    save_values = models.JSONField(null=True, blank=True)
+    
+    def __str__(self):
+        return self.user
+
+    class Meta:
+        managed = False
+        db_table = 'estimate_logs'
+
+
+
 class RevenuePlanModel(models.Model):
     id = models.IntegerField(blank=True, 
                              primary_key=True, 

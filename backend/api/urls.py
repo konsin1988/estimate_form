@@ -3,6 +3,7 @@ from api.views import *
 from api.view.CostsViews import CostByFrcAPIView, CostEstSaveAPIView
 from api.view.CostDupAPIView import CostDupAPIView
 from api.view.RevenueViews import RevenueByFrcAPIView, RevenueSaveAPIView
+from api.view.LogViews import UpsertVisitedLogsView, UpsertUpdatedLogsView 
 
 urlpatterns = [
     path("health/", health, name='health_check'),
@@ -18,4 +19,7 @@ urlpatterns = [
     path("api/cost/save/", CostEstSaveAPIView.as_view(), name="cost-est-save"),
     path("api/revenue/", RevenueByFrcAPIView.as_view(), name="revenue-by-frc"),
     path("api/revenue/save/", RevenueSaveAPIView.as_view(), name="revenue-save"),
+
+    path("api/logs/visited/", UpsertVisitedLogsView.as_view(), name="save-visited-logs"),
+    path("api/logs/updated/", UpsertUpdatedLogsView.as_view(), name="save-updated-logs"),
 ]

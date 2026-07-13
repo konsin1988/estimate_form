@@ -12,26 +12,6 @@ export const getCostData = async (frc_owner: string) => {
 }
 
 
-//export const saveCostValue = async (
-//  id: number,
-//  value: number
-//) => {
-//  try {
-//    const res = await api.put(
-//      "/cost/save/",
-//      {
-//        id,
-//        value,
-//      }
-//    );
-//    return res.data;
-//  } catch (error) {
-//    console.error("Failed to save cost", error);
-//    throw error;
-//  }
-//};
-
-
 export const saveCostsValues = async (
   changes:{
     id: number;
