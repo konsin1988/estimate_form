@@ -37,6 +37,7 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPend
 
     const [ data, setData ] = useState<GroupRow[]>([]);
     const columns = useRevenueColumns(hidePreviousMonths);
+    
 
     const handleMinimapScroll = () => {
       if (isSyncingMini.current) return;

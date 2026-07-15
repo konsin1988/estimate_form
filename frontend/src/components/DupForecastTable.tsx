@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateField, saveEst } from "../store/estSlice";
 import debounce from "lodash.debounce";
 import dayjs from "dayjs";
 import axios from "axios";
@@ -14,7 +13,6 @@ import {
 
 import Modal from "./Modal";
 import { getDupData } from "../api/dup.api";
-import { getDelta } from "../scripts/getDelta";
 import { dupApiToTableTransformer } from "../scripts/DupApiToTableTransformer";
 import { useDupColumns } from "../hooks/useDupColumns";
 import type { DupDivisionRow } from "..types/DupTypes";
