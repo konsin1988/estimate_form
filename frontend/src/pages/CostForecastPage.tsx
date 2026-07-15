@@ -19,12 +19,6 @@ export default function CostForecastPage() {
     }[]
   >([]);
 
-  //const handleSubmit = async()=>{
-  //  await saveCostsValues(pendingChanges);
-  //  setPendingChanges([]);
-  //};
-
-
   const handleSubmit = async()=>{
     try {
       await saveCostsValues(pendingChanges);
