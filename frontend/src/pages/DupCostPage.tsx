@@ -59,7 +59,7 @@ export default function DupCostPage() {
   return (
     <>
       <div className={`
-                    fixed top-[19%] h-[67%] 
+                    fixed top-[19%] h-[69%] 
                     overflow-x-auto left-3 right-0 flex 
                     flex-col items-start custom-scrollbar
         `}>

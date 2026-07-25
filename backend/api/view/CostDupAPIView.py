@@ -64,7 +64,7 @@ class CostDupAPIView(APIView):
 
         # plan
         qs = ( 
-            CostPlanModel.objects.using('fin')
+            CostPlanModel.rtt.using('fin')
             .filter(frc_owner=frc_owner, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),
@@ -111,7 +111,7 @@ class CostDupAPIView(APIView):
         
         # estimate 
         qs = ( 
-            CostEstModel.objects.using('fin')
+            CostEstModel.rtt.using('fin')
                 .filter(frc_owner=frc_owner, date_dt__year=year, estimate_date=estimate_date)
                 .values(
                         'id', 'date_dt', "frc",
@@ -140,7 +140,8 @@ class CostDupAPIView(APIView):
                 amount = lambda x: x['amount'].astype('float64').fillna(0),
                 source = 'Прогноз',
                 is_editable=is_editable(),
-            )
+               frc=lambda x: x['frc'].fillna("Без ЦФО"),
+           )
             .rename(columns={'date_dt': 'month'})
             [['id', 'month', 'month_name', 'source', 'division', 'frc', 'subgroup', 'amount', 'is_editable']]
         )
@@ -148,7 +149,7 @@ class CostDupAPIView(APIView):
 
         # fact
         qs = (
-            CostFactModel.objects.using('fin')
+            CostFactModel.rtt.using('fin')
             .filter(frc_owner=frc_owner, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),
@@ -197,5 +198,5 @@ class CostDupAPIView(APIView):
             #.query('(frc == "Информационная безопасность") and (subgroup == "4.11.1. 26. Расходы НПФ")')
         )
 
-        
         return Response(res.to_dict(orient="records"))
+        

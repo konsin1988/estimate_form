@@ -15,7 +15,7 @@ export default function Layout() {
       <Navigation />
 
       <MonthToggle value={hidePreviousMonths} onChange={setHidePreviousMonths}/>
-      <main className="bg-gray-200 border border border-gray-300 flex-1 overflow-x-scroll w-full 
+      <main className="bg-[#fafcff] border border border-gray-300 flex-1 overflow-x-scroll w-full 
             ">
           <Outlet context={[hidePreviousMonths]} />
       </main>

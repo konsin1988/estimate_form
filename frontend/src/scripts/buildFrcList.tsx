@@ -28,8 +28,8 @@ export function buildFrcList(
   }
 
   return {
-    revenueFrc: Array.from(revenueFrc),
-    costFrc: Array.from(costFrc),
+    revenueFrc: Array.from(revenueFrc).sort(),
+    costFrc: Array.from(costFrc).sort(),
     isDup,
   };
 }

@@ -64,7 +64,7 @@ export function useDupColumns(hidePreviousMonths) {
             <span className={`${row.getCanExpand()
                   ? "ml-2" 
                   : ""}
-                  ${row.depth === 0 ? "text-black": ''}
+                  ${row.depth === 0 ? "text-gray-800": ''}
                   ${row.depth === 1 ? "text-gray-600": ''}
                   ${row.getIsExpanded() && row.depth === 0 ? "text-red-400 underline" : ""}
                   ${row.getIsExpanded() && row.depth === 1 ? "text-gray-900 font-bold underline" : ""}
@@ -87,10 +87,10 @@ export function useDupColumns(hidePreviousMonths) {
           header: month.name,
 
           meta: {
-            bgClass: `text-white 
+            bgClass: `text-[#b2b2b8]
                 ${index % 2 === 0
-                ? "bg-gray-800"
-                : "bg-gray-700"}`,
+                ? "bg-gray-100"
+                : "bg-gray-200"}`,
             monthSeparator: true,
             headerClassName: "sticky top-0 z-30 border-none" 
           },
@@ -102,7 +102,11 @@ export function useDupColumns(hidePreviousMonths) {
               header: "План",
               meta: {
                 monthSeparator: true,
-                headerClassName: "border-l-2 border-l-black bg-gray-100 sticky top-7 z-30 border-b-black" 
+                headerClassName: ` 
+                    border-l-1 border-r border-r-gray-200 
+                    border-b border-b-gray-200 border-l-gray-200 
+                    bg-[#fafcff] sticky top-7 z-30 border-b-[#c3c5c9]
+                `
               },
 
               cell: ({ row }) => {
@@ -123,7 +127,11 @@ export function useDupColumns(hidePreviousMonths) {
                   : "Прогноз",
 
               meta: {
-                headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black" 
+                headerClassName: `
+                    bg-gray-100 border-r border-r-gray-200 
+                    border-b border-b-gray-200 border-l 
+                    border-l-gray-200  sticky top-7 z-30
+                    `
               },
 
 
@@ -159,10 +167,13 @@ export function useDupColumns(hidePreviousMonths) {
         header: "Год, всего",
       
         meta: {
-          bgClass: "bg-gray-900 text-white",
+          bgClass: "bg-gray-100 text-[#b2b2b8]",
           monthSeparator: true,
           headerClassName:
-            "sticky top-0 z-30 border-l-2 border-l-black",
+            `sticky top-0 z-30 border-l-2 border-l-gray-200 
+            border-b border-b-gray-200 border-t border-t-gray-200 
+            border-r border-r-gray-200
+            `,
         },
       
         columns: [
@@ -171,7 +182,7 @@ export function useDupColumns(hidePreviousMonths) {
       
             header: "План",
             meta: {
-              headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black border-l-2 border-l-black" 
+              headerClassName: "bg-[#fafcff] sticky top-7 z-30 border-b border-b-gray-200 border-l-2 border-l-gray-200"
             },
       
             cell: ({ row }) => {

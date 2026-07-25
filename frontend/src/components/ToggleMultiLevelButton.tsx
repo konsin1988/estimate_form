@@ -32,25 +32,9 @@ export default function MultiLevelHeader({ table }: MultiLevelHeaderProps) {
     });
 
     table.setExpanded(newExpanded);
-    //const currentExpanded = table.getState().expanded;
-    //const rowsAtDepth = allRows.filter(row => row.depth === targetDepth);
-    //
-    //const areAllExpanded = rowsAtDepth.every(row => currentExpanded[row.id] === true);
-
-    //const newExpanded = { ...currentExpanded };
-
-    //rowsAtDepth.forEach(row => {
-    //  if (areAllExpanded) {
-    //    delete newExpanded[row.id];
-    //  } else {
-    //    newExpanded[row.id] = true;
-    //  }
-    //});
-
-    //table.setExpanded(newExpanded);
   };
 
-  const styles = `shrink-0 text-sm bg-[#8a8a92] text-gray-100 py-0.5 font-bold min-w-28 max-w-28 py-0.5 active:scale-102 active:shadow-lg`
+  const styles = `shrink-0 text-sm   py-0.5 font-bold min-w-28 max-w-28 py-0.5 active:scale-102 active:shadow-lg`
 
   const currentExpanded = table.getState().expanded;
   const level0Rows = allRows.filter(r => r.depth === 0);
@@ -61,18 +45,18 @@ export default function MultiLevelHeader({ table }: MultiLevelHeaderProps) {
 
   return (
     <div className="flex flex-col gap-1 items-center ">
-      <div className="flex gap-1">
+      <div className="flex gap-1 text-[13px]">
       <button
           onClick={() => toggleDepth(0)}
 
-          className= { `${styles} ${isLvl0Expanded ? 'bg-[#a18775] text-white font-bold' : ''}`  }
+          className= { `${styles} ${isLvl0Expanded ? "text-white bg-[#a18775] text-white font-bold" : 'text-gray-600 bg-gray-300'}`  }
         >
           {isLvl0Expanded ? "Скрыть ЦФО" : "Показать ЦФО"}
         </button>
 
         {isLvl0Expanded && <button
           onClick={() => toggleDepth(1)}
-          className={ `${styles} ${isLvl1Expanded ? 'bg-[#a18775] text-white font-bold' : ''}` }
+          className={ `${styles} ${isLvl1Expanded ? 'bg-[#a18775] text-white font-bold' : 'text-gray-500 bg-gray-300'}` }
         >
           {isLvl1Expanded ? "Скрыть счета" : "Показать счета"}
         </button>}

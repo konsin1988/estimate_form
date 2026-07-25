@@ -65,7 +65,7 @@ export function useCostColumns(hidePreviousMonths, frc) {
                   ? "ml-2" 
                   : ""}
                   ${row.getIsExpanded() && row.depth === 0 ? "text-gray-900 font-bold underline" : ""}
-                  `}>
+                  `}> 
               {getValue()}
             </span>
           </div>
@@ -84,12 +84,12 @@ export function useCostColumns(hidePreviousMonths, frc) {
           header: month.name,
 
           meta: {
-            bgClass: `text-white 
+            bgClass: `text-[#b2b2b8]
                 ${index % 2 === 0
-                ? "bg-gray-800"
-                : "bg-gray-700"}`,
+                ? "bg-gray-100"
+                : "bg-gray-200"}`,
             monthSeparator: true,
-            headerClassName: "sticky top-0 z-30 border-none shadow-[2px_0_5px_rgba(0,0,0,0.1)]" 
+            headerClassName: "sticky top-0 z-30 border-t border-t-gray-200 shadow-[2px_0_5px_rgba(0,0,0,0.1)]" 
           },
 
           columns: [
@@ -99,7 +99,11 @@ export function useCostColumns(hidePreviousMonths, frc) {
               header: "План",
               meta: {
                 monthSeparator: true,
-                headerClassName: "border-l-2 border-l-black bg-gray-100 sticky top-7 z-30 border-b-black" 
+                headerClassName: ` 
+                    border-l-1 border-r border-r-gray-200 
+                    border-b border-b-gray-200 border-l-gray-200 
+                    bg-[#fafcff] sticky top-7 z-30 border-b-[#c3c5c9]
+                  `
               },
 
               cell: ({ row }) => {
@@ -120,7 +124,7 @@ export function useCostColumns(hidePreviousMonths, frc) {
                   : "Прогноз",
 
               meta: {
-                headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black" 
+                headerClassName: "bg-gray-100 border-b border-b-gray-200 sticky top-7 z-30 border-b-[#c3c5c9]" 
               },
 
 
@@ -158,10 +162,13 @@ export function useCostColumns(hidePreviousMonths, frc) {
         header: "Год, всего",
       
         meta: {
-          bgClass: "bg-gray-900 text-white",
+          bgClass: "bg-gray-100 text-[#b2b2b8]",
           monthSeparator: true,
           headerClassName:
-            "sticky top-0 z-30 border-l-2 border-l-black",
+            `sticky top-0 z-30 border-l-2 border-l-gray-200 
+            border-b border-b-gray-200 border-t border-t-gray-200 
+            border-r border-r-gray-200
+            `,
         },
       
         columns: [
@@ -170,7 +177,7 @@ export function useCostColumns(hidePreviousMonths, frc) {
       
             header: "План",
             meta: {
-              headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black border-l-2 border-l-black" 
+              headerClassName: "bg-[#fafcff] sticky top-7 z-30 border-b border-b-gray-200 border-l-2 border-l-gray-200"
             },
       
             cell: ({ row }) => {
@@ -194,7 +201,11 @@ export function useCostColumns(hidePreviousMonths, frc) {
             header: "Факт+Прогноз",
 
             meta: {
-              headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black" 
+              headerClassName: `
+                    bg-gray-100 border-r border-r-gray-200 
+                    border-b border-b-gray-200 border-l 
+                    border-l-gray-200  sticky top-7 z-30
+                    `
             },
       
             cell: ({ row }) => {

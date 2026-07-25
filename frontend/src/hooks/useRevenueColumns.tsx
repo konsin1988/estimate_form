@@ -80,12 +80,12 @@ export function useRevenueColumns(hidePreviousMonths) {
           header: month.name,
 
           meta: {
-            bgClass: `text-white 
+            bgClass: `text-[#b2b2b8]
                 ${index % 2 === 0
-                ? "bg-gray-800"
-                : "bg-gray-700"}`,
+                ? "bg-gray-100"
+                : "bg-gray-200"}`,
             monthSeparator: true,
-            headerClassName: "sticky top-0 z-30 border-none" 
+            headerClassName: "sticky top-0 z-30 border-t border-t-gray-200",
           },
 
           columns: [
@@ -95,7 +95,11 @@ export function useRevenueColumns(hidePreviousMonths) {
               header: "План",
               meta: {
                 monthSeparator: true,
-                headerClassName: "border-l-2 border-l-black bg-gray-100 sticky top-7 z-30 border-b-black" 
+                headerClassName: `
+                    border-l-1 border-r border-r-gray-200 
+                    border-b border-b-gray-200 border-l-gray-200 
+                    bg-transparent sticky top-7 z-30 border-b-[#c3c5c9]
+                ` 
               },
 
               cell: ({ row }) => {
@@ -116,7 +120,7 @@ export function useRevenueColumns(hidePreviousMonths) {
                   : "Прогноз",
 
               meta: {
-                headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black" 
+                headerClassName: "bg-gray-100 border-b border-b-gray-200 sticky top-7 z-30 border-b-[#c3c5c9]" 
               },
 
 
@@ -155,10 +159,13 @@ export function useRevenueColumns(hidePreviousMonths) {
         header: "Год, всего",
       
         meta: {
-          bgClass: "bg-gray-900 text-white",
+          bgClass: "bg-gray-100 text-[#b2b2b8]",
           monthSeparator: true,
           headerClassName:
-            "sticky top-0 z-30 border-l-2 border-l-black",
+            `sticky top-0 z-30 border-l-2 border-l-gray-200 
+            border-b border-b-gray-200 border-t border-t-gray-200 
+            border-r border-r-gray-200
+            `,
         },
       
         columns: [
@@ -167,7 +174,7 @@ export function useRevenueColumns(hidePreviousMonths) {
       
             header: "План",
             meta: {
-              headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black border-l-2 border-l-black" 
+              headerClassName: "bg-transparent sticky top-7 z-30 border-b border-b-gray-200 border-l-2 border-l-gray-200"
             },
       
             cell: ({ row }) => {
@@ -191,7 +198,7 @@ export function useRevenueColumns(hidePreviousMonths) {
             header: "Факт+Прогноз",
 
             meta: {
-              headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black" 
+              headerClassName: "bg-gray-100 border-r border-r-gray-200 border-b border-b-gray-200 border-l border-l-gray-200  sticky top-7 z-30" 
             },
       
             cell: ({ row }) => {
