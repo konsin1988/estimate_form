@@ -55,7 +55,7 @@ export default function NumberInput({
       onFocus={handleFocus}
       onChange={handleChange} 
       onBlur={handleBlur}
-      className="w-full text-center px-1 py-0.5 text-gray-700 bg-blue-100 focus:bg-[#fff9eb]"
+      className="w-full text-center rounded-md px-1 py-0.5 text-gray-700 bg-[#deebfc] focus:bg-[#f7f5f0]"
     />
   );
 }

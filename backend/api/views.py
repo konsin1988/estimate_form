@@ -41,7 +41,7 @@ class PlanByFrcAPIView(APIView):
         year = datetime.now().year
         if not frc:
             return Response({"detail": "frc required"}, status=400)
-        qs = RevenuePlan2025.objects.filter(frc=frc, date_dt__year=year).using('fin')
+        qs = RevenuePlan2025.rtt.filter(frc=frc, date_dt__year=year).using('fin')
         ser = PlanSerializer(qs, many=True)
         return Response(ser.data)
 
@@ -77,7 +77,7 @@ class EstByFrcAPIView(APIView):
             return Response({"detail": "frc required"}, status=400)
 
         # Найдём для каждого месяца максимальную estimate_date, затем возьмём записи с этой estimate_date
-        qs = RevenueEst2025.objects.filter(frc=frc, date_dt__year=year).using('fin')
+        qs = RevenueEst2025.rtt.filter(frc=frc, date_dt__year=year).using('fin')
         # Group by month of date_dt
         month_map = {}  # month (1..12) -> record with max estimate_date
         result = {}
@@ -109,7 +109,7 @@ class FactByFrcAPIView(APIView):
             return Response({"detail": "frc required"}, status=400)
 
         qs = (
-            RevenueFact.objects.filter(frc=frc, date_dt__year=year)
+            RevenueFact.rtt.filter(frc=frc, date_dt__year=year)
             .annotate(month = Extract("date_dt", "month"))
             .values("month")
             .annotate(month_amount=Sum("amount"))

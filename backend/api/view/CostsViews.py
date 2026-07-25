@@ -45,7 +45,7 @@ class CostByFrcAPIView(APIView):
 
         # plan
         qs = ( 
-            CostPlanModel.objects.using('fin')
+            CostPlanModel.rtt.using('fin')
             .filter(frc_owner=frc_owner, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),
@@ -90,7 +90,7 @@ class CostByFrcAPIView(APIView):
         
         # estimate 
         qs = ( 
-            CostEstModel.objects.using('fin')
+            CostEstModel.rtt.using('fin')
                 .filter(frc_owner=frc_owner, date_dt__year=year, estimate_date=estimate_date)
                 .values(
                         'id', 'date_dt', 
@@ -127,7 +127,7 @@ class CostByFrcAPIView(APIView):
 
         # fact
         qs = (
-            CostFactModel.objects.using('fin')
+            CostFactModel.rtt.using('fin')
             .filter(frc_owner=frc_owner, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),

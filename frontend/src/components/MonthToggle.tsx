@@ -16,7 +16,13 @@ export default function MonthToggle({value, onChange}: Props) {
         type="checkbox"
         checked={value}
         onChange={() => onChange(prevState => !prevState)}
-        className="w-5 h-5 cursor-pointer"
+        className={`
+            w-5 h-5 cursor-pointer checked:bg-gray-400 
+            appearance-none bg-gray-300 
+            flex items-center justify-center text-white font-bold
+            checked:after:content-['✓'] checked:border-2 checked:border-red-500
+            rounded
+            `}
       />
     </div>
   );

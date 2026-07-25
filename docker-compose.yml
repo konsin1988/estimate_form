@@ -15,8 +15,46 @@ services:
         condition: service_healthy
     networks:
         - estimate-network
-    
+
+
   backend:
+    image: konsin1988/${PROJECT_NAME}-backend-dev:${PROJECT_VERSION}
+    container_name: ${PROJECT_NAME}-backend
+    build:
+      context: .
+      dockerfile: ./docker/django/Dockerfile
+    ports: 
+      - "8000:8000"
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_USER=${REDIS_USER}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - SECRET_KEY=${SECRET_KEY}
+      - PGSERVICEFILE=${PGSERVICEFILE}
+      - ENCRYPT_KEY=${ENCRYPT_KEY}
+      - IV=${IV}
+    command: gunicorn backend.wsgi:application --timeout 900 --bind 0.0.0.0:8000
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    volumes:
+      - ./backend/:/app/
+    networks:
+      - estimate-network
+    
+
+  backend-prod:
     image: konsin1988/${PROJECT_NAME}-backend:${PROJECT_VERSION}
     container_name: ${PROJECT_NAME}-backend
     build:

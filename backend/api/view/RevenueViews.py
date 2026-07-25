@@ -27,7 +27,7 @@ class RevenueByFrcAPIView(APIView):
         
         # plan
         qs = ( 
-            RevenuePlanModel.objects.using('fin')
+            RevenuePlanModel.rtt.using('fin')
             .filter(frc=frc, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),
@@ -72,7 +72,7 @@ class RevenueByFrcAPIView(APIView):
 
         # estimate 
         qs = ( 
-            RevenueEstModel.objects.using('fin')
+            RevenueEstModel.rtt.using('fin')
                 .filter(frc=frc, estimate_date=estimate_date)
                 .values(
                         'id', 'date_dt', 
@@ -125,7 +125,7 @@ class RevenueByFrcAPIView(APIView):
 
         # fact
         qs = (
-            RevenueFactModel.objects.using('fin')
+            RevenueFactModel.rtt.using('fin')
             .filter(frc=frc, date_dt__year=year)
             .annotate(
                 month_date = TruncMonth("date_dt"),

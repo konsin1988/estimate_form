@@ -16,11 +16,11 @@ export default function SubmitButton({ frc, is_revenue, is_cost, onSubmit }){
   }
   return (
     <>
-     <div className="fixed w-full bottom-0 h-14/100 bg-gray-200 z-40"> 
-      <div className="fixed bottom-7/100 left-78/100">
+     <div className="fixed w-full bottom-0 h-12/100 bg-transparent z-40"> 
+      <div className="text-sm fixed bottom-6/100 left-78/100">
 			  <button type="button" className={`
-        min-w-[140px]
-        h-9
+        min-w-[100px]
+        h-7
         rounded-lg
         flex
         items-center
@@ -32,7 +32,7 @@ export default function SubmitButton({ frc, is_revenue, is_cost, onSubmit }){
         active:bg-white
         active:text-gray-700 
         py-1 
-        px-6 
+        px-5 
         border 
         rounded-md 
         border-gray-800

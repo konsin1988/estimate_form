@@ -1,5 +1,11 @@
 from django.db import models
 
+
+class RttManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(company='АО "РТ-Техприемка"')
+
+
 class RevenueUsers(models.Model):
     id = models.IntegerField(blank=True, primary_key=True, unique=True)
     frc = models.CharField(blank=True, null=True)
@@ -30,6 +36,9 @@ class RevenueEst2025(models.Model):
     hcl_amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
     contr_amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
 
+    objects = models.Manager() # Default manager
+    rtt = RttManager()  # Custom manager
+
     def __str__(self):
         return self.company
 
@@ -53,6 +62,11 @@ class RevenueFact(models.Model):
     div_frc = models.CharField(blank=True, null=True)
     nom_frc = models.CharField(blank=True, null=True)
     amount = models.DecimalField(max_digits=30, decimal_places=2, blank=True, null=True)
+    company = models.CharField(blank=True, null=True)
+
+    # managers
+    objects = models.Manager() # Default manager
+    rtt = RttManager()  # Custom manager
 
     def __str__(self):
         return self.doc
@@ -71,6 +85,10 @@ class RevenuePlan2025(models.Model):
     date_dt = models.DateField(blank=True, null=True)
     frc = models.CharField(blank=True, null=True)
     amount = models.DecimalField(max_digits=30, decimal_places=2, blank=True, null=True)
+
+    # managers
+    objects = models.Manager() # Default manager
+    rtt = RttManager()  # Custom manager
 
     def __str__(self):
         return self.company
@@ -120,6 +138,11 @@ class RevenuePlanModel(models.Model):
     date_dt = models.DateField(blank=True, null=True)
     frc = models.CharField(blank=True, null=True)
     amount = models.DecimalField(max_digits=30, decimal_places=2, blank=True, null=True)
+    company = models.CharField(blank=True, null=True)
+
+    # managers
+    objects = models.Manager() # Default manager
+    rtt = RttManager()  # Custom manager
 
     def __str__(self):
         return self.frc
@@ -140,6 +163,11 @@ class RevenueEstModel(models.Model):
     est_amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
     hcl_amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
     contr_amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
+    company = models.CharField(blank=True, null=True)
+
+    # managers
+    objects = models.Manager() # Default manager
+    rtt = RttManager()  # Custom manager
 
     def __str__(self):
         return self.company
@@ -156,6 +184,11 @@ class RevenueFactModel(models.Model):
     date_dt = models.DateField(blank=True, null=True)
     frc = models.CharField(blank=True, null=True)
     amount = models.DecimalField(max_digits=30, decimal_places=2, blank=True, null=True)
+    company = models.CharField(blank=True, null=True)
+
+    # managers
+    objects = models.Manager() # Default manager
+    rtt = RttManager()  # Custom manager
 
     def __str__(self):
         return self.doc
@@ -179,6 +212,11 @@ class CostEstModel(models.Model):
     type_1c = models.CharField(blank=True, null=True)
     frc_owner = models.CharField(blank=True, null=True)
     amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
+    company = models.CharField(blank=True, null=True)
+
+    # managers
+    objects = models.Manager() # Default manager
+    rtt = RttManager()  # Custom manager
 
     def __str__(self):
         return self.company
@@ -201,6 +239,11 @@ class CostPlanModel(models.Model):
     cost_1c = models.CharField(blank=True, null=True)
     amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
     frc_owner = models.CharField(blank=True, null=True)
+    company = models.CharField(blank=True, null=True)
+
+    # managers
+    objects = models.Manager() # Default manager
+    rtt = RttManager()  # Custom manager
 
     def __str__(self):
         return self.company
@@ -223,6 +266,11 @@ class CostFactModel(models.Model):
     type_1c = models.CharField(blank=True, null=True)
     frc_owner = models.CharField(blank=True, null=True)
     amount = models.DecimalField(max_digits=40, decimal_places=2, blank=True, null=True)
+    company = models.CharField(max_length=255, blank=True, null=True) 
+
+    # managers
+    objects = models.Manager() # Default manager
+    rtt = RttManager()  # Custom manager
 
     def __str__(self):
         return self.company

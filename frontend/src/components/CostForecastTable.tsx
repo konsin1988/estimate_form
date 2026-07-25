@@ -94,7 +94,7 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
     });
 
   return (
-      <table className={`table-fixed w-max border-collapse mb-5 mr-10 `}>
+      <table className={`border-separate border-spacing-0 mr-5 border-b border-b-gray-200`}>
         <thead> 
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id}>
@@ -102,18 +102,18 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
                 <th
                   key={header.id}
                   colSpan={header.colSpan}
-                  className={`border min-w-28 border-gray-400
-                              py-1 h-9 w-28 text-sm text-gray-700 
+                  className={`
+                              min-w-28 py-1 text-sm text-gray-700 
                               ${header.column.columnDef.meta?.headerClassName ?? ""}
                               ${header.column.columnDef.meta?.monthSeparator 
-                                ? "border-l-2 border-l-gray-800 "
+                                ? "border-l-2 border-l-gray-200 border-b border-b-gray-200"
                                 : ""
                               }
                               ${header.column.columnDef.meta?.bgClass ?? ""}
                               ${header.column.id === "name"
                                   ? header.depth === 1
-                                    ? "sticky left-0 top-0 z-40 bg-gray-200 border-none"
-                                    : "sticky left-0 top-7 z-40 bg-gray-200 border-none" 
+                                    ? "sticky left-0 top-0 z-40 bg-[#fafcff]"
+                                    : "sticky left-0 top-7 z-40 bg-[#fafcff]"
                                   : ""}
                   `}
                 >
@@ -137,8 +137,8 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
                 key={row.id}
                 className={
                   row.original.type === "group"
-                    ? "font-bold text-sm pt-2"
-                    : "text-sm border-y border-collapse border-gray-700"
+                    ? "font-bold text-[13px]  pt-2 border-l border-l-gray-200"
+                    : "text-[12px] border-y border-collapse border-l border-gray-200"
                 }
               >
                 {row
@@ -147,13 +147,12 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
                     <td 
                       key={cell.id}
                       className={`
-                          border border-collapse
-                          px-2 py-1 h-9 text-center 
+                          border-collapse px-2 py-1 text-center border-b border-b-gray-200 
                           ${cell.column.id.endsWith("_plan")
-                            ? "border-l-2 border-l-black bg-gray-100"
-                            : ""}
+                            ? "border-l-2 border-gray-200 bg-transparent"
+                            : "bg-gray-100 border-l-1 border-gray-200"}
                           ${cell.column.id === "name"
-                            ? "sticky left-0 z-20 bg-gray-200 border-none text-left"
+                            ? "sticky bg-[#fafcff] left-0 z-20 border-none text-left"
                             : ""}
                       `}
                     >
