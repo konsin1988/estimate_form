@@ -15,6 +15,10 @@ info/
 tars/
 /**/*.tar
 
+/backend/.pg_service.conf
+/backend/.pg_service.conf.prod
+/backend/.pg_service.conf.dev
+
 /**/pnpm-lock.yaml
 /**/*.csv
 
