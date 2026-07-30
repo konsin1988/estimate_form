@@ -14,10 +14,7 @@ export default function MultiLevelHeader({ table }: MultiLevelHeaderProps) {
     const areAllExpanded = rowsAtDepth.every(row => currentExpanded[row.id] === true);
     const newExpanded = { ...currentExpanded };
 
-    // --- NEW LOGIC ADDED HERE ---
     if (targetDepth === 0 && areAllExpanded) {
-      // If we are collapsing Level 0, wipe out the ENTIRE expanded state object
-      // This instantly closes all depths, including Level 1
       table.setExpanded({}); 
       return;
     }
@@ -34,7 +31,7 @@ export default function MultiLevelHeader({ table }: MultiLevelHeaderProps) {
     table.setExpanded(newExpanded);
   };
 
-  const styles = `shrink-0 text-sm   py-0.5 font-bold min-w-28 max-w-28 py-0.5 active:scale-102 active:shadow-lg`
+  const styles = `shrink-0 text-sm   py-0.5 font-bold min-w-31 max-w-31 py-0.5 active:scale-102 active:shadow-lg`
 
   const currentExpanded = table.getState().expanded;
   const level0Rows = allRows.filter(r => r.depth === 0);
@@ -45,7 +42,7 @@ export default function MultiLevelHeader({ table }: MultiLevelHeaderProps) {
 
   return (
     <div className="flex flex-col gap-1 items-center ">
-      <div className="flex gap-1 text-[13px]">
+      <div className="flex gap-1 text-[12px]">
       <button
           onClick={() => toggleDepth(0)}
 
@@ -58,7 +55,7 @@ export default function MultiLevelHeader({ table }: MultiLevelHeaderProps) {
           onClick={() => toggleDepth(1)}
           className={ `${styles} ${isLvl1Expanded ? 'bg-[#a18775] text-white font-bold' : 'text-gray-500 bg-gray-300'}` }
         >
-          {isLvl1Expanded ? "Скрыть счета" : "Показать счета"}
+          {isLvl1Expanded ? "Скрыть статьи 1С" : "Показать статьи 1С"}
         </button>}
       </div>
     </div>

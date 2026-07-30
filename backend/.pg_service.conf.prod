@@ -1,6 +1,0 @@
-[revenue]
-host=172.16.3.158
-user=dba
-password=!QAZ2wsx
-dbname=skud_va
-port=5432
