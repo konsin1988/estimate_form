@@ -1,7 +1,40 @@
 import type {
   GroupRow,
   SubgroupRow,
+  TotalRow,
 } from "../types/CostTypes";
+
+function recalculateTotal(
+    groups: GroupRow[]
+): TotalRow {
+
+    const values = {};
+
+    for (const group of groups) {
+
+        for (const [month, sources] of Object.entries(group.values)) {
+
+            values[month] ??= {};
+
+            for (const [source, cell] of Object.entries(sources)) {
+
+                values[month][source] ??= {
+                    amount: 0,
+                };
+
+                values[month][source].amount +=
+                    cell.amount;
+            }
+        }
+    }
+
+    return {
+        type: "total",
+        name: "Итого",
+        values,
+        subRows: groups,
+    };
+}
 
 function recalculateGroup(group: GroupRow): GroupRow {
   const values: GroupRow["values"] = {};
@@ -33,11 +66,18 @@ function recalculateGroup(group: GroupRow): GroupRow {
 
 
 export function updateCostValue(
-  rows: GroupRow[],
+  rows: TotalRow[],
   id: number,
   value: number
-): GroupRow[] {
-  return rows.map(group => {
+): TotalRow[] {
+
+  const total = rows[0];
+  
+  if (total.type !== "total") {
+    return rows;
+  }
+
+  const updatedGroups = total.subRows.map(group => {
     const updatedSubRows =
       group.subRows.map(subgroup => ({
         ...subgroup, 
@@ -69,4 +109,6 @@ export function updateCostValue(
       subRows: updatedSubRows,
     });
   });
+
+  return [ recalculateTotal(updatedGroups) ];
 }
