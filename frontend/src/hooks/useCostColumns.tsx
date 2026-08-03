@@ -64,7 +64,8 @@ export function useCostColumns(hidePreviousMonths, frc) {
             <span className={`${row.getCanExpand()
                   ? "ml-2" 
                   : ""}
-                  ${row.getIsExpanded() && row.depth === 0 ? "text-gray-900 font-bold underline" : ""}
+                  ${row.getIsExpanded() && row.original.type === "group" ? "text-gray-900 font-bold underline" : ""} 
+                  ${row.original.type === "total" ? "font-bold underline" : ""}
                   `}> 
               {getValue()}
             </span>
@@ -136,7 +137,6 @@ export function useCostColumns(hidePreviousMonths, frc) {
                   return <span>{format(rawAmount)}</span>;
                 }
                 const recordId = row.original.values?.[month.key]?.[source]?.id || row.original.id;
-                //const subgroup = row.original.values?.[month.key]?.[source]?.name || row.original.name; 
 
                 return (
                   <NumberInput

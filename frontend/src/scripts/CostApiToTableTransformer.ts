@@ -1,9 +1,10 @@
-import type { ApiCostRow, GroupRow }  from "../types/CostTypes"; 
+import type { ApiCostRow, TotalRow, GroupEntry }  from "../types/CostTypes"; 
 
 export function costApiToTableTransformer(
   rows: ApiCostRow[] = [],
-): GroupRow[] {
-  const groupsMap = new Map();
+): TotalRow[] {
+
+  const groupsMap = new Map<string, GroupEntry>();
 
   for (const row of rows) {
     let groupEntry = groupsMap.get(row.group);
@@ -62,7 +63,35 @@ export function costApiToTableTransformer(
     
     aggregatedValue.amount += row.amount;
   }
-  return Array.from(groupsMap.values()).map(
+  const groups = Array.from(groupsMap.values()).map(
     entry => entry.group
   );
+
+  const totalValues: TotalRow["values"] = {};
+  
+  for (const group of groups) {
+      for (const [month, sources] of Object.entries(group.values)) {
+          totalValues[month] ??= {};
+  
+          for (const [source, cell] of Object.entries(sources)) {
+  
+              totalValues[month][source] ??= {
+                  amount: 0,
+              };
+  
+              totalValues[month][source].amount += cell.amount;
+          }
+      }
+  }
+
+  return [
+      {
+          id: "total",
+          type: "total",
+          name: "Итого",
+          values: totalValues,
+          subRows: groups,
+      },
+  ];
+
 }

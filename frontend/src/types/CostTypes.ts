@@ -41,3 +41,29 @@ export type GroupRow = {
   subRows: SubgroupRow[];
 };
 
+export type TotalRow = {
+  id: string;
+  type: "total";
+  name: string;
+
+  values: {
+    [month: string]: {
+      [source: string]: {
+        amount: number;
+      };
+    };
+  };
+
+  subRows: GroupRow[];
+};
+
+
+export type GroupEntry = {
+  group: GroupRow;
+  subgroupMap: Map<string, SubgroupRow>;
+};
+
+export type TableRow =
+    | TotalRow
+    | GroupRow
+    | SubgroupRow;
