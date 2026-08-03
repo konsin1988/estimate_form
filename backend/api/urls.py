@@ -4,6 +4,7 @@ from api.view.CostsViews import CostByFrcAPIView, CostEstSaveAPIView
 from api.view.CostDupAPIView import CostDupAPIView
 from api.view.RevenueViews import RevenueByFrcAPIView, RevenueSaveAPIView
 from api.view.LogViews import UpsertVisitedLogsView, UpsertUpdatedLogsView 
+from api.view.ExcelDupImportView import ExcelDupImportAPIView 
 
 urlpatterns = [
     path("health/", health, name='health_check'),
@@ -22,4 +23,6 @@ urlpatterns = [
 
     path("api/logs/visited/", UpsertVisitedLogsView.as_view(), name="save-visited-logs"),
     path("api/logs/updated/", UpsertUpdatedLogsView.as_view(), name="save-updated-logs"),
+
+    path("api/import/dup/", ExcelDupImportAPIView.as_view(), name="dup-excel-import"),
 ]

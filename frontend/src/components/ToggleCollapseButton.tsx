@@ -35,13 +35,13 @@ export default function ToggleCollapseButton({ table }: ColumnHeaderProps) {
   };
 
 
-  const buttonStyle = "shrink-0 ml-15  font-bold min-w-31 max-w-31 border py-0.5 rounded active:scale-102 active:shadow-lg"
+  const buttonStyle = "shrink-0 ml-15 font-bold min-w-31 max-w-31 py-0.5 rounded-lg hover:bg-gray-300 active:scale-102 active:shadow-lg"
 
   return (
           <div className="flex items-center gap-2 px-3 text-[12px]">
             <button
               onClick={toggleGroups}
-              className={`${ buttonStyle } ${groupsExpanded ? 'bg-[#a18775] text-white font-bold' : 'bg-gray-300 text-gray-700'}`}
+              className={`${ buttonStyle } ${groupsExpanded ? 'bg-[#a18775] text-white font-bold' : 'bg-gray-200 text-gray-700'}`}
             >
               {groupsExpanded ? "Скрыть статьи 1С" : "Показать статьи 1С"}
             </button>

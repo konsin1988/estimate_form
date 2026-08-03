@@ -3,9 +3,11 @@ import { useOutletContext } from 'react-router-dom';
 
 import { useAuth } from "../auth/AuthProvider";
 import SubmitButton from "../components/SubmitButton";
+import DupFileUpload from "../components/FileUpload";
 import DupForecastTable from "../components/DupForecastTable";
 import { saveCostsValues } from "../api/costs.api";
 import { logUserVisit, logUserUpdateValues } from "../api/logs.api";
+
 
 
 export default function DupCostPage() {
@@ -58,6 +60,7 @@ export default function DupCostPage() {
 
   return (
     <>
+      <DupFileUpload/>
       <div className={`
                     fixed top-[19%] h-[69%] 
                     overflow-x-auto left-3 right-0 flex 
