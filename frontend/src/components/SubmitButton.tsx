@@ -25,17 +25,15 @@ export default function SubmitButton({ frc, is_revenue, is_cost, onSubmit }){
         flex
         items-center
         justify-center
-        text-[#ebe3dd]
+        text-gray-600
         transition-colors
-        bg-[#8a8a92] 
-        hover:bg-[#a6a8ad]
+        bg-gray-200
+        hover:bg-gray-300
         active:bg-white
         active:text-gray-700 
         py-1 
         px-5 
-        border 
-        rounded-md 
-        border-gray-800
+        rounded-lg
         `} 
         onClick={buttonSubmitOnClick}
         >

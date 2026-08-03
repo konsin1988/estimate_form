@@ -14,6 +14,8 @@ virtualenv/
 info/
 tars/
 /**/*.tar
+/notebook
+/mailer
 
 /backend/.pg_service.conf
 /backend/.pg_service.conf.prod

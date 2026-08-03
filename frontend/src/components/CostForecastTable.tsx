@@ -32,6 +32,7 @@ type CostForecastProps = {
 
 export default function CostForecastTable ({ frc, hidePreviousMonths, setPendingChanges }: CostForecastProps){
     const [ data, setData ] = useState<GroupRow[]>([]);
+    const [expanded, setExpanded] = useState({ total: true });
 
     const columns = useCostColumns(hidePreviousMonths, frc);
 
@@ -41,12 +42,13 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
           const raw_data = await getCostData(frc);
           const transformedData = costApiToTableTransformer(raw_data);
           setData(transformedData);
-          table.setExpanded({}); 
+          table.setExpanded({ total: true }); 
         } catch (error) {
           console.error(error);
         }
       };
       fetchData();
+      console.log(data);
     }, [frc])
 
 
@@ -56,14 +58,25 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
     
         getCoreRowModel:
           getCoreRowModel(),
+
+        getRowId: row => {
+        
+                if (row.type === "total")
+                    return "total";
+        
+                return row.name;
+            },
+        
+            state: {
+                expanded,
+            },
+
+        onExpandedChange: setExpanded,
     
         getExpandedRowModel:
           getExpandedRowModel(),
 
-        getSubRows: row =>
-          row.type === "group"
-            ? row.subRows
-            : [],
+        getSubRows: row => row.subRows ?? [],
 
         meta: {
           updateData: async (
@@ -135,10 +148,12 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
             .rows.map(row => (
               <tr 
                 key={row.id}
-                className={
-                  row.original.type === "group"
+                className={`
+                  ${row.original.type === "group"
                     ? "font-bold text-[13px]  pt-2 border-l border-l-gray-200"
-                    : "text-[12px] border-y border-collapse border-l border-gray-200"
+                    : "text-[12px] border-y border-collapse border-l border-gray-200"}
+                     ${row.original.type === "total" ? "underline font-bold text-[14px]" : ""}
+                  `
                 }
               >
                 {row

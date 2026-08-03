@@ -66,8 +66,6 @@ export function dupApiToTableTransformer(
 
     const frcName = row.frc ;
 
-    //let frcEntry =
-    //  divisionEntry.frcMap.get(row.frc); 
     let frcEntry =
       divisionEntry.frcMap.get(frcName); 
 
