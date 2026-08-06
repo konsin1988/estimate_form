@@ -117,6 +117,7 @@ class EstimateLogsModel(models.Model):
     login = models.CharField(max_length=255)
     frc = models.CharField(max_length=255)
     is_revenue = models.BooleanField(default=False)
+    estimate_date = models.DateField(blank=True, null=True)
     last_visited = models.DateTimeField()
     last_updated = models.DateTimeField(null=True, blank=True)
     save_values = models.JSONField(null=True, blank=True)

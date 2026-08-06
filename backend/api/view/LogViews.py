@@ -9,6 +9,9 @@ from api.models import EstimateLogsModel
 class UpsertVisitedLogsView(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
+
+        current_date = timezone.now().date()
+        first_day_of_month = date(current_date.year, current_date.month, 1)
         
         try:
             input_user = data['user']
@@ -29,6 +32,7 @@ class UpsertVisitedLogsView(APIView):
                 login=input_login,
                 frc=input_frc,
                 is_revenue=input_is_revenue,
+                estimate_date=first_day_of_month,
                 defaults={
                     'last_visited': timezone.now(), 
                 },
@@ -89,6 +93,7 @@ class UpsertUpdatedLogsView(APIView):
         try:
             # 3. Try to fetch the existing row to handle the complex JSON merge
             log_entry = EstimateLogsModel.objects.using('fin').filter(
+                estimate_date=current_month_start,
                 login=input_login,
                 frc=input_frc,
                 is_revenue=input_is_revenue,
@@ -144,6 +149,7 @@ class UpsertUpdatedLogsView(APIView):
                     login=input_login,
                     frc=input_frc,
                     is_revenue=input_is_revenue,
+                    estimate_date=first_day_of_month,
                     last_visited=now_timestamp,
                     last_updated=now_timestamp, 
                     save_values=incoming_save_values
