@@ -9,19 +9,13 @@ function recalculateTotal(
 ): TotalRow {
 
     const values = {};
-
     for (const group of groups) {
-
         for (const [month, sources] of Object.entries(group.values)) {
-
             values[month] ??= {};
-
             for (const [source, cell] of Object.entries(sources)) {
-
                 values[month][source] ??= {
                     amount: 0,
                 };
-
                 values[month][source].amount +=
                     cell.amount;
             }

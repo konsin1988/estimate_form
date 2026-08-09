@@ -3,10 +3,14 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../auth/AuthProvider";
 import FrcChoice from "../components/FrcChoice";
 import SubmitButton from "../components/SubmitButton";
+import  LastUpdatedComponent  from "../components/LastUpdatedComponent";
 import RevenueForecastTable from "../components/RevenueForecastTable";
 import { useOutletContext } from 'react-router-dom';
 import { saveRevenueValues } from "../api/revenue.api";
-import { logUserVisit, logUserUpdateValues } from "../api/logs.api";
+import { logUserVisit, logUserUpdateValues, lastUpdated } from "../api/logs.api";
+
+import type { LastUpdatedItem } from "../types/LogTypes";
+
 
 export default function RevenueForecastPage() {
   const {user, login, revenueFrc} = useAuth();
@@ -19,6 +23,9 @@ export default function RevenueForecastPage() {
       value: number;
     }[]
   >([]);
+
+  const [ lastUpdatedItem, setLastUpdatedItem ] = useState<LastUpdatedItem>({"user": "", "last_updated": ""});
+  const [ isSaving, setIsSaving ] = useState(false);
 
   const handleSubmit = async()=>{
     try {
@@ -35,6 +42,8 @@ export default function RevenueForecastPage() {
       setPendingChanges([]); 
     } catch (error) {
       console.error("Failed to sync values with Django backend:", error);
+    } finally {
+      setIsSaving(prev => !prev);
     }
   };
 
@@ -56,6 +65,21 @@ export default function RevenueForecastPage() {
     triggerVisitLog();
   }, [frc]);
 
+  useEffect(() => {
+    const getLastUpdated = async () => {
+      try {
+        const response = await lastUpdated(frc, 1);
+        setLastUpdatedItem({"user": response.user, "last_updated": response.last_updated})
+        console.log("Get last_updated: user", response.user, " last_updated", response.last_updated );
+      } catch (error) {
+        console.error("Failed to upload last_updated:", error);
+      }
+    };
+
+    getLastUpdated();
+  }, [ frc, isSaving ]);
+
+
   return (
     <>
           <FrcChoice
@@ -74,6 +98,7 @@ export default function RevenueForecastPage() {
               setPendingChanges={setPendingChanges}
             />
           </div>
+          <LastUpdatedComponent lastUpdatedItem={lastUpdatedItem}/> 
           <SubmitButton frc={frc} is_revenue={1} is_cost={0} onSubmit={handleSubmit} />
     </>
   );

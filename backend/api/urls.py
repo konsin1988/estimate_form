@@ -1,9 +1,9 @@
 from django.urls import path
 from api.views import *
-from api.view.CostsViews import CostByFrcAPIView, CostEstSaveAPIView
+from api.view.CostsViews import CostByFrcAPIView, CostEstSaveListAPIView, CostEstSaveOneAPIView
 from api.view.CostDupAPIView import CostDupAPIView
-from api.view.RevenueViews import RevenueByFrcAPIView, RevenueSaveAPIView
-from api.view.LogViews import UpsertVisitedLogsView, UpsertUpdatedLogsView 
+from api.view.RevenueViews import RevenueByFrcAPIView, RevenueEstSaveListAPIView
+from api.view.LogViews import UpsertVisitedLogsView, UpsertUpdatedLogsView, LastUpdatedAPIView 
 from api.view.ExcelDupImportView import ExcelDupImportAPIView 
 
 urlpatterns = [
@@ -17,12 +17,14 @@ urlpatterns = [
     path("api/est/log/", SaveEstLog.as_view(), name="est-log"),
     path("api/costs/", CostByFrcAPIView.as_view(), name="costs-by-frc"),
     path("api/costs/dup/", CostDupAPIView.as_view(), name="costs-dup"),
-    path("api/cost/save/", CostEstSaveAPIView.as_view(), name="cost-est-save"),
+    path("api/cost/save/", CostEstSaveListAPIView.as_view(), name="cost-est-save-list"),
+    path("api/cost/save/one/", CostEstSaveOneAPIView.as_view(), name="cost-est-save-one"),
     path("api/revenue/", RevenueByFrcAPIView.as_view(), name="revenue-by-frc"),
-    path("api/revenue/save/", RevenueSaveAPIView.as_view(), name="revenue-save"),
+    path("api/revenue/save/", RevenueEstSaveListAPIView.as_view(), name="revenue-save-list"),
 
     path("api/logs/visited/", UpsertVisitedLogsView.as_view(), name="save-visited-logs"),
     path("api/logs/updated/", UpsertUpdatedLogsView.as_view(), name="save-updated-logs"),
+    path("api/logs/lastupdated/", LastUpdatedAPIView.as_view(), name="last-updated"),
 
     path("api/import/dup/", ExcelDupImportAPIView.as_view(), name="dup-excel-import"),
 ]

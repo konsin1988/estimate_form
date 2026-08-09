@@ -4,10 +4,12 @@ import { useOutletContext } from 'react-router-dom';
 import { useAuth } from "../auth/AuthProvider";
 import SubmitButton from "../components/SubmitButton";
 import DupFileUpload from "../components/FileUpload";
+import LastUpdatedComponent  from "../components/LastUpdatedComponent";
 import DupForecastTable from "../components/DupForecastTable";
 import { saveCostsValues } from "../api/costs.api";
-import { logUserVisit, logUserUpdateValues } from "../api/logs.api";
+import { logUserVisit, logUserUpdateValues, lastUpdated } from "../api/logs.api";
 
+import type { LastUpdatedItem } from "../types/LogTypes";
 
 
 export default function DupCostPage() {
@@ -20,6 +22,9 @@ export default function DupCostPage() {
       value: number;
     }[]
   >([]);
+
+  const [ lastUpdatedItem, setLastUpdatedItem ] = useState<LastUpdatedItem>({"user": "", "last_updated": ""});
+  const [ isSaving, setIsSaving ] = useState(false);
 
   const handleSubmit = async()=>{
     try {
@@ -36,6 +41,8 @@ export default function DupCostPage() {
       setPendingChanges([]); 
     } catch (error) {
       console.error("Failed to sync values with Django backend:", error);
+    } finally {
+      setIsSaving(prev => !prev);
     }
   };
 
@@ -57,6 +64,23 @@ export default function DupCostPage() {
     triggerVisitLog();
   }, [frc]);
 
+  useEffect(() => {
+    const getLastUpdated = async () => {
+      try {
+        const response = await lastUpdated(frc, 0);
+        setLastUpdatedItem({
+          "user": response.user, 
+          "last_updated": response.last_updated
+        })
+        console.log("Get last_updated: user", response.user, " last_updated", response.last_updated );
+      } catch (error) {
+        console.error("Failed to upload last_updated:", error);
+      }
+    };
+
+    getLastUpdated();
+  }, [ frc, isSaving ]);
+
 
   return (
     <>
@@ -72,6 +96,7 @@ export default function DupCostPage() {
           setPendingChanges={setPendingChanges}
         />
       </div>
+      <LastUpdatedComponent lastUpdatedItem={lastUpdatedItem}/> 
       <SubmitButton frc={frc} is_revenue={0} is_cost={0} onSubmit={handleSubmit}/>
     </>
   );

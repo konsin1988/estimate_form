@@ -1,9 +1,15 @@
 from datetime import date
 from django.utils import timezone
+from django.db.models import Func, Value, CharField
+from django.db.models.functions import Coalesce
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from api.models import EstimateLogsModel
+
+class ToChar(Func):
+    function = 'to_char'
+    output_field = CharField()
 
 
 class UpsertVisitedLogsView(APIView):
@@ -166,3 +172,34 @@ class UpsertUpdatedLogsView(APIView):
                 {'error': f'Database processing failure: {str(e)}'}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class LastUpdatedAPIView(APIView):
+    def get(self, request):
+        frc = request.GET.get("frc")
+        is_revenue = request.GET.get("is_revenue")
+        if not frc or not is_revenue:
+            return Response({"detail": "frc and is_revenue required"}, status=400)
+
+        result = ( 
+            EstimateLogsModel.objects.using('fin')
+            .filter(
+                frc=frc,
+                is_revenue=is_revenue,
+                last_updated__isnull = False
+            )
+            .annotate(
+                formatted_last_updated=Coalesce(
+                    ToChar('last_updated', Value('DD.MM.YYYY HH24:MI:SS')),
+                    Value('Данные отсутствуют')
+            ))
+            .order_by("-last_updated")
+            .values('user', 'formatted_last_updated')
+            .first()
+        )
+        if result:
+            user_list = result['user'].split()
+            user = f"{user_list[0]} {user_list[1][0]}.{user_list[2][0]}."
+            return Response({'user': user, 'last_updated': result['formatted_last_updated']})
+        else: 
+            return Response({'user': 'Нет данных', 'last_updated': 'Нет данных'})

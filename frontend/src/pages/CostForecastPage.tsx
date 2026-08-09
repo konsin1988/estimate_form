@@ -3,10 +3,14 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../auth/AuthProvider";
 import FrcChoice from "../components/FrcChoice";
 import SubmitButton from "../components/SubmitButton";
+import  LastUpdatedComponent  from "../components/LastUpdatedComponent";
 import CostForecastTable from "../components/CostForecastTable";
+
 import { useOutletContext } from 'react-router-dom';
 import { saveCostsValues } from "../api/costs.api";
-import { logUserVisit, logUserUpdateValues } from "../api/logs.api";
+import { logUserVisit, logUserUpdateValues, lastUpdated } from "../api/logs.api";
+
+import type { LastUpdatedItem } from "../types/LogTypes";
 
 export default function CostForecastPage() {
   const {user, login, costsFrc} = useAuth();
@@ -19,6 +23,9 @@ export default function CostForecastPage() {
     }[]
   >([]);
 
+  const [ lastUpdatedItem, setLastUpdatedItem ] = useState<LastUpdatedItem>({"user": "", "last_updated": ""});
+  const [ isSaving, setIsSaving ] = useState(false);
+
   const handleSubmit = async()=>{
     try {
       await saveCostsValues(pendingChanges);
@@ -29,11 +36,12 @@ export default function CostForecastPage() {
         is_revenue: false,
         save_values: pendingChanges
       });
-      console.log("Success:", response.message);
       
       setPendingChanges([]); 
     } catch (error) {
       console.error("Failed to sync values with Django backend:", error);
+    } finally {
+      setIsSaving(prev => !prev);
     }
   };
 
@@ -53,8 +61,22 @@ export default function CostForecastPage() {
     };
 
     triggerVisitLog();
-  }, [frc]);
+  }, [ frc ]);
 
+
+  useEffect(() => {
+    const getLastUpdated = async () => {
+      try {
+        const response = await lastUpdated(frc, 0);
+        setLastUpdatedItem({"user": response.user, "last_updated": response.last_updated})
+        console.log("Get last_updated: user", response.user, " last_updated", response.last_updated );
+      } catch (error) {
+        console.error("Failed to upload last_updated:", error);
+      }
+    };
+
+    getLastUpdated();
+  }, [ frc, isSaving ]);
 
   return (
     <>
@@ -74,6 +96,7 @@ export default function CostForecastPage() {
               setPendingChanges={setPendingChanges}
             />
           </div>
+          <LastUpdatedComponent lastUpdatedItem={lastUpdatedItem}/> 
           <SubmitButton frc={frc} is_revenue={0} is_cost={1} onSubmit={handleSubmit}/>
     </>
   );

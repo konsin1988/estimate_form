@@ -173,7 +173,21 @@ class RevenueByFrcAPIView(APIView):
         return Response(res.to_dict(orient="records"))
 
 
-class RevenueSaveAPIView(APIView):
+#class RevenueEstSaveOneAPIView(APIView):
+#    def put(self, request):
+#        id = request.data.get("id")
+#        value = request.data.get("value")
+#        qs = CostEstModel.objects.filter(id=id).using('fin')
+#        qs.update_or_create(
+#                defaults = {"amount": value }
+#                )
+#        result = {
+#                "response": request.data, 
+#                "status": status.HTTP_201_CREATED
+#                }
+#        return Response(result)
+
+class RevenueEstSaveListAPIView(APIView):
     def put(self, request):
         changes = request.data.get("changes", [])
         for item in changes:
