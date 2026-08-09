@@ -26,6 +26,7 @@ const months = [
 ];
 
 const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
+const thresholdMonth = dayjs().subtract(1, "month").startOf("month").format("YYYY-MM-DD"); 
 
 const columnHelper =
   createColumnHelper<GroupRow | SubgroupRow>();
@@ -115,7 +116,7 @@ export function useRevenueColumns(hidePreviousMonths) {
               id: `${month.key}_factForecast`,
 
               header:
-                month.key < currentMonth
+                month.key < thresholdMonth
                   ? "Факт"
                   : "Прогноз",
 
@@ -125,7 +126,7 @@ export function useRevenueColumns(hidePreviousMonths) {
 
 
               cell: ({ row, table }) => {
-                const source = month.key < currentMonth ? "Факт" : "Прогноз";
+                const source = month.key < thresholdMonth ? "Факт" : "Прогноз";
                 const rawAmount = row.original.values?.[month.key]?.[source]?.amount ?? 0; 
                 const isEditable = row.original.values?.[month.key]?.[source]?.is_editable ?? false;
                 if (!isEditable) {

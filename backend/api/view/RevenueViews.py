@@ -4,12 +4,16 @@ from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from django.db.models import Max, Sum, Q, F, DecimalField, Value, CharField
 from django.db.models.functions import TruncMonth, Coalesce
-from datetime import datetime
+from datetime import datetime, date
 import pandas as pd
 from api.models import *
 from api.serializers import *
 from api.utils import *
 
+from django.utils import timezone
+from dateutil.relativedelta import relativedelta
+
+import logging
 
 class RevenueByFrcAPIView(APIView):
     """ /api/revenue/?frc=XXX """
@@ -24,6 +28,10 @@ class RevenueByFrcAPIView(APIView):
 
         # dates
         dates = get_dates()
+
+        # threshold previous date
+        past_date = timezone.now().date() - relativedelta(months=1)
+        threshold_date = date(past_date.year, past_date.month, 1)
         
         # plan
         qs = ( 
@@ -123,10 +131,66 @@ class RevenueByFrcAPIView(APIView):
             [['id', 'month', 'month_name', 'source', 'group', 'subgroup', 'amount', 'is_editable']]
         )
 
-        # fact
+
+        # ESTIMATE PREVIOUS MONTH
+        qs = ( 
+            RevenueEstModel.rtt.using('fin')
+                .filter(frc=frc, estimate_date=threshold_date, date_dt=threshold_date)
+                .values(
+                        'id', 'date_dt', 
+                    )
+                .annotate(
+                    est_amount=Coalesce(F('est_amount'), 0, output_field=DecimalField()),
+                    hcl_amount=Coalesce(F('hcl_amount'), 0, output_field=DecimalField()),
+                    contr_amount=Coalesce(F('contr_amount'), 0, output_field=DecimalField()),
+                )
+                .order_by("date_dt")
+        )
+        ser = RevenueEstSerializer(qs, many=True)
+        
+
+        if len(ser.data) > 0:
+            est_prev_month = (
+                pd.json_normalize(ser.data)
+            )
+        else:
+            est_prev_month = pd.DataFrame(columns=['id', 'date_dt', 'est_amount', 'hcl_amount', 'contr_amount'])
+
+        est_prev_month = (
+            dates['est_prev']
+            .merge(est_prev_month, how='left', on=['date_dt'])
+            .assign(
+                id = lambda x: x['id'].fillna(0), # hardcode
+                est_amount = lambda x: x['est_amount'].fillna(0).astype('float64'),
+                hcl_amount = lambda x: x['hcl_amount'].fillna(0).astype('float64'),
+                contr_amount = lambda x: x['contr_amount'].fillna(0).astype('float64'),
+                source = 'Прогноз',
+                group='Выручка',
+                is_editable=0
+            )
+            .rename(columns={'date_dt': 'month'})
+            #[['id', 'month', 'month_name', 'source', 'group', 'amount', 'is_editable']]
+        )
+        cols = ['id', 'month', 'month_name', 'source', 'group', 'is_editable']
+        est_prev_month = ( 
+            pd
+               .melt(
+                est_prev_month,
+                id_vars=cols,
+                value_vars=[col for col in est_prev_month.columns if col not in cols],
+                var_name='subgroup',
+                value_name='amount'
+            )
+               .assign(subgroup = lambda x: x['subgroup'].apply(lambda x: subgroup_to_ru(x)))
+            [['id', 'month', 'month_name', 'source', 'group', 'subgroup', 'amount', 'is_editable']]
+        )
+
+
+        # FACT 
+
         qs = (
             RevenueFactModel.rtt.using('fin')
-            .filter(frc=frc, date_dt__year=year)
+            .filter(frc=frc, date_dt__year=year, date_dt__lt=threshold_date)
             .annotate(
                 month_date = TruncMonth("date_dt"),
                       )
@@ -164,9 +228,9 @@ class RevenueByFrcAPIView(APIView):
             .rename(columns={'date_dt': 'month'})
             [['id', 'month', 'month_name', 'source', 'group', 'subgroup', 'amount', 'is_editable']]
         )
-        
+
         res = (
-            pd.concat([plan, est, fact])
+            pd.concat([plan, est, fact, est_prev_month])
             .sort_values(['month', 'source'])
         )
         

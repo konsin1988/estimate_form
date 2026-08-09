@@ -4,11 +4,14 @@ from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from django.db.models import Max, Sum, Q, F, DecimalField, Value, CharField
 from django.db.models.functions import TruncMonth, Coalesce
-from datetime import datetime
+from datetime import datetime, date
 import pandas as pd
 from api.models import *
 from api.serializers import *
 from api.utils import *
+
+from django.utils import timezone
+from dateutil.relativedelta import relativedelta
 
 
 class CostByFrcAPIView(APIView):
@@ -24,6 +27,10 @@ class CostByFrcAPIView(APIView):
 
         # dates
         dates = get_dates()
+
+        # threshold previous date
+        past_date = timezone.now().date() - relativedelta(months=1)
+        threshold_date = date(past_date.year, past_date.month, 1)
 
         # frc_mapping
         qs = CostFrcMappingModel.objects.using('fin').filter(frc=frc_owner)
@@ -88,7 +95,7 @@ class CostByFrcAPIView(APIView):
         
 
         
-        # estimate 
+        # ESTIMATE  
         qs = ( 
             CostEstModel.rtt.using('fin')
                 .filter(frc_owner=frc_owner, date_dt__year=year, estimate_date=estimate_date)
@@ -125,10 +132,46 @@ class CostByFrcAPIView(APIView):
         )
 
 
-        # fact
+        #ESTIMATE PREV MONTH
+        qs = ( 
+            CostEstModel.rtt.using('fin')
+                .filter(frc_owner=frc_owner, estimate_date=threshold_date, date_dt=threshold_date)
+                .values(
+                        'id', 'date_dt', 
+                        'cons_type', 'type_1c' 
+                    )
+                .annotate(
+                    amount=Coalesce(F('amount'), 0, output_field=DecimalField()),
+                )
+        )
+        ser = CostEstSerializer(qs, many=True)
+
+        est_prev_month = (
+            pd.json_normalize(ser.data)
+            .rename(columns={
+                "cons_type": "group",
+                "type_1c": "subgroup",
+            })
+            [['id', 'date_dt', 'group', 'subgroup', 'amount']]
+        )
+
+        est_prev_month = (
+            dates['est_prev']
+            .merge(frc_cons, how='cross')
+            .merge(est_prev_month, how='left', on=['date_dt', 'group', 'subgroup'])
+            .assign(
+                amount = lambda x: x['amount'].astype('float64').fillna(0),
+                source = 'Прогноз',
+                is_editable=0,
+            )
+            .rename(columns={'date_dt': 'month'})
+            [['id', 'month', 'month_name', 'source', 'group', 'subgroup', 'amount', 'is_editable']]
+        )
+
+        # FACT 
         qs = (
             CostFactModel.rtt.using('fin')
-            .filter(frc_owner=frc_owner, date_dt__year=year)
+            .filter(frc_owner=frc_owner, date_dt__year=year, date_dt__lt=threshold_date)
             .annotate(
                 month_date = TruncMonth("date_dt"),
                       )
@@ -170,9 +213,8 @@ class CostByFrcAPIView(APIView):
 
 
         res = (
-            pd.concat([plan, est, fact])
+            pd.concat([plan, est, fact, est_prev_month])
             .sort_values(['group', 'subgroup', 'month', 'source'])
-            #.query('(group == "Административные расходы") and (subgroup == "2.1.4. 25. Материальные затраты")')
         )
         
         return Response(res.to_dict(orient="records"))

@@ -49,7 +49,8 @@ def get_dates():
 
     return {
         "plan": __get_list_dates(1, 13),
-        "fact": __get_list_dates(1, cur_month),
+        "fact": __get_list_dates(1, cur_month - 1),
+        "est_prev": __get_list_dates(cur_month - 1, cur_month),
         "est": __get_list_dates(cur_month, 13),
 
     }

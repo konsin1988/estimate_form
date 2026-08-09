@@ -50,7 +50,6 @@ export const lastUpdated = async (frc: string,  is_revenue: string ): Promise<La
       is_revenue: is_revenue } 
   })
   if (res.status === 200 && res.data) {
-    console.log(res.data)
     return res.data
     }
   return null;
