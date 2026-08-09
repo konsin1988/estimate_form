@@ -1,4 +1,5 @@
 import api from "./axios";
+import type { LastUpdatedItem } from '../types/LogTypes';
 
 
 export interface VisitedLogPayload {
@@ -39,4 +40,18 @@ export const logUserUpdateValues = async (payload: UpdatedLogPayload) => {
     payload
   );
   return res.data;
+};
+
+
+export const lastUpdated = async (frc: string,  is_revenue: string ): Promise<LastUpdatedItem | null> => {
+  const res = await api.get<LastUpdatedItem>('/logs/lastupdated/', {
+    params: { 
+      frc: frc,
+      is_revenue: is_revenue } 
+  })
+  if (res.status === 200 && res.data) {
+    console.log(res.data)
+    return res.data
+    }
+  return null;
 };

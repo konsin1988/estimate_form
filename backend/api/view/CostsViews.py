@@ -179,7 +179,7 @@ class CostByFrcAPIView(APIView):
 
 
 
-class CostEstSaveAPIView(APIView):
+class CostEstSaveOneAPIView(APIView):
     def put(self, request):
         id = request.data.get("id")
         value = request.data.get("value")
@@ -193,7 +193,7 @@ class CostEstSaveAPIView(APIView):
                 }
         return Response(result)
 
-class CostEstSaveAPIView(APIView):
+class CostEstSaveListAPIView(APIView):
     def put(self, request):
         changes = request.data.get("changes", [])
         for item in changes:
