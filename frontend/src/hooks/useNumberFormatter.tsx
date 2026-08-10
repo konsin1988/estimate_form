@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 export function useNumberFormatter() {
-    const format = useCallback((value) => {
+  const format = useCallback((value) => {
 	if (value == null || value === "") return "";
 	return new Intl.NumberFormat("fr-FR").format(Math.round(value))
     }, []);

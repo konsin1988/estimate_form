@@ -9,11 +9,14 @@ import {
 } from "@tanstack/react-table";
 
 import Modal from "./Modal";
-import { getRevenueData } from "../api/revenue.api";
+import { getRevenueData, saveRevenueValues } from "../api/revenue.api";
 import { revenueApiToTableTransformer } from "../scripts/RevenueApiToTableTransformer";
 import { useRevenueColumns } from "../hooks/useRevenueColumns";
 import type { GroupRow } from "..types/CostTypes";
 import { updateRevenueValue } from "../scripts/updateRevenueValue";
+import { useAuth } from "../auth/AuthProvider";
+import { getLastUpdated } from "../scripts/getLastUpdated";
+import { logUserUpdateValues } from "../api/logs.api";
 
 
 type Props = {
@@ -28,15 +31,24 @@ type Props = {
       }[]
     >
   >;
+  setLastUpdatedItem: React.Dispatch<
+    React.SetStateAction<
+      {
+        user: string;
+        last_updated: string;
+      }[]
+    >
+  >;
 };
 
 
-export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPendingChanges }: Props){
+export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPendingChanges, setLastUpdatedItem }: Props){
     const mainTableRef = useRef(null);
     const minimapRef = useRef(null);
 
     const [ data, setData ] = useState<GroupRow[]>([]);
     const columns = useRevenueColumns(hidePreviousMonths);
+    const { user, login } = useAuth();
     
 
     const handleMinimapScroll = () => {
@@ -71,7 +83,6 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPend
       const fetchData = async () => {
         try {
           const raw_data = await getRevenueData(frc);
-          console.log(raw_data);
           const transformedData = revenueApiToTableTransformer(raw_data);
           setData(transformedData);
 
@@ -128,6 +139,21 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPend
 
             setData(old => updateRevenueValue(old, id, subgroupName, value));
           }, 
+          saveData: async (id: number, subgroupName: string, value: number) => {
+            try {
+              await saveRevenueValues([{id: id, subgroupName: subgroupName, value: value}]);
+              await logUserUpdateValues({
+                user: user,
+                login: login,
+                frc: frc,
+                is_revenue: true,
+                save_values: [{ id: id, subgroupName: subgroupName, value: value }] 
+              });
+              getLastUpdated({frc: frc, is_revenue: 1, setLastUpdatedItem: setLastUpdatedItem});
+            } catch {
+              console.log("Error in revenue table");
+            }
+          },
         }
     });
 

@@ -11,7 +11,6 @@ export const getCostData = async (frc_owner: string) => {
     })
 }
 
-
 export const saveCostsValues = async (
   changes:{
     id: number;
@@ -25,3 +24,4 @@ export const saveCostsValues = async (
 
   return res.data;
 };
+

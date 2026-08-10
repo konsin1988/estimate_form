@@ -8,12 +8,16 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 
+import { useAuth } from "../auth/AuthProvider";
 import Modal from "./Modal";
-import { getCostData } from "../api/costs.api";
+import { getCostData, saveCostsValues } from "../api/costs.api";
+
 import { costApiToTableTransformer } from "../scripts/CostApiToTableTransformer";
 import { useCostColumns } from "../hooks/useCostColumns";
 import type { GroupRow } from "..types/CostTypes";
 import { updateCostValue } from "../scripts/updateCostValue";
+import { getLastUpdated } from "../scripts/getLastUpdated";
+import { logUserUpdateValues } from "../api/logs.api";
 
 
 type CostForecastProps = {
@@ -27,12 +31,25 @@ type CostForecastProps = {
       }[]
     >
   >;
+  setLastUpdatedItem: React.Dispatch<
+    React.SetStateAction<
+      {
+        user: string;
+        last_updated: string;
+      }[]
+    >
+  >;
 };
 
 
-export default function CostForecastTable ({ frc, hidePreviousMonths, setPendingChanges }: CostForecastProps){
+export default function CostForecastTable ({ frc, 
+                                           hidePreviousMonths, 
+                                           setPendingChanges, 
+                                           setLastUpdatedItem 
+}: CostForecastProps){
     const [ data, setData ] = useState<GroupRow[]>([]);
     const [expanded, setExpanded] = useState({ total: true });
+    const { user, login } = useAuth();
 
     const columns = useCostColumns(hidePreviousMonths, frc);
 
@@ -48,7 +65,6 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
         }
       };
       fetchData();
-      console.log(data);
     }, [frc])
 
 
@@ -89,7 +105,6 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
                     x =>
                         x.id === id 
                 );
-            
                 if (exists) {
                     return old.map(x =>
                         x.id === id 
@@ -97,12 +112,26 @@ export default function CostForecastTable ({ frc, hidePreviousMonths, setPending
                             : x
                     );
                 }
-            
                 return [...old, { id, value }];
             });
 
             setData(old => updateCostValue(old, id, value));
           }, 
+          saveData: async (id: number, value: number) => {
+            try {
+              await saveCostsValues([{id: id, value: value}]);
+              await logUserUpdateValues({
+                user: user,
+                login: login,
+                frc: frc,
+                is_revenue: false,
+                save_values: [{ id: id, value: value }] 
+              });
+              getLastUpdated({frc: frc, is_revenue: 0, setLastUpdatedItem: setLastUpdatedItem});
+            } catch {
+              console.log("Error in cost table");
+            } 
+          },
         }
     });
 

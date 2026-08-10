@@ -148,6 +148,12 @@ export function useCostColumns(hidePreviousMonths, frc) {
                         newValue
                       );
                     }}
+                    onBlur={newValue => {
+                      table.options.meta?.saveData(
+                        recordId, 
+                        newValue
+                      );
+                    }}
                   />
                 );
               }

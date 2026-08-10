@@ -221,19 +221,19 @@ class CostByFrcAPIView(APIView):
 
 
 
-class CostEstSaveOneAPIView(APIView):
-    def put(self, request):
-        id = request.data.get("id")
-        value = request.data.get("value")
-        qs = CostEstModel.objects.filter(id=id).using('fin')
-        qs.update_or_create(
-                defaults = {"amount": value }
-                )
-        result = {
-                "response": request.data, 
-                "status": status.HTTP_201_CREATED
-                }
-        return Response(result)
+#class CostEstSaveSingleAPIView(APIView):
+#    def put(self, request):
+#        id = request.data.get("id")
+#        value = request.data.get("value")
+#        qs = CostEstModel.objects.filter(id=id).using('fin')
+#        qs.update_or_create(
+#                defaults = {"amount": value }
+#                )
+#        result = {
+#                "response": request.data, 
+#                "status": status.HTTP_201_CREATED
+#                }
+#        return Response(result)
 
 class CostEstSaveListAPIView(APIView):
     def put(self, request):
