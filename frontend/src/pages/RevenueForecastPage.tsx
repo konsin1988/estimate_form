@@ -37,7 +37,6 @@ export default function RevenueForecastPage() {
         is_revenue: true,
         save_values: pendingChanges
       });
-      console.log("Success:", response.message);
       
       setPendingChanges([]); 
     } catch (error) {
@@ -70,7 +69,6 @@ export default function RevenueForecastPage() {
       try {
         const response = await lastUpdated(frc, 1);
         setLastUpdatedItem({"user": response.user, "last_updated": response.last_updated})
-        console.log("Get last_updated: user", response.user, " last_updated", response.last_updated );
       } catch (error) {
         console.error("Failed to upload last_updated:", error);
       }
@@ -96,6 +94,7 @@ export default function RevenueForecastPage() {
               frc={frc} 
               hidePreviousMonths={hidePreviousMonths} 
               setPendingChanges={setPendingChanges}
+              setLastUpdatedItem={setLastUpdatedItem}
             />
           </div>
           <LastUpdatedComponent lastUpdatedItem={lastUpdatedItem}/> 

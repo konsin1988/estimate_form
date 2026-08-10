@@ -1,5 +1,6 @@
 import api from "./axios";
 
+// GET LIST
 export const getRevenueData = async (frc: string) => {
 		return api.get(`/revenue/?frc=${encodeURIComponent(frc)}`)
     .then(res => {

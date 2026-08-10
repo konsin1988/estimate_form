@@ -4,11 +4,13 @@ import { useNumberFormatter } from "../hooks/useNumberFormatter";
 type Props = {
   value: number;
   onChange: (value: string) => void;
+  onBlur?: (value: number) => void;
 };
 
 export default function NumberInput({
   value,
   onChange,
+  onBlur,
 }: Props) {
   const { format, parse, checkNumbers } = useNumberFormatter();
   const [displayValue, setDisplayValue] = useState(format(value));
@@ -40,13 +42,22 @@ export default function NumberInput({
 
 
   const handleBlur = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.FucusEvent<HTMLInputElement>
   ) => {
 
     setIsFocused(false);
-    e.target.value.trim() === "" && setDisplayValue("0");
-    const numericValue = parse(checkNumbers(e.target.value));
+
+    const inputValue = e.target.value.trim();
+    if (inputValue === "") {
+      setDisplayValue("0");
+      onChange(0);
+      return;
+    }
+    const numericValue = parse(checkNumbers(inputValue));
+    setDisplayValue(format(numericValue));
     onChange(numericValue);
+    onBlur?.(numericValue);
+
   };
 
   return (
