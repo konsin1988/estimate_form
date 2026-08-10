@@ -11,6 +11,7 @@ import { saveCostsValues } from "../api/costs.api";
 import { logUserVisit, logUserUpdateValues, lastUpdated } from "../api/logs.api";
 
 import type { LastUpdatedItem } from "../types/LogTypes";
+import { getLastUpdated } from "../scripts/getLastUpdated";
 
 export default function CostForecastPage() {
   const {user, login, costsFrc} = useAuth();
@@ -24,7 +25,6 @@ export default function CostForecastPage() {
   >([]);
 
   const [ lastUpdatedItem, setLastUpdatedItem ] = useState<LastUpdatedItem>({"user": "", "last_updated": ""});
-  const [ isSaving, setIsSaving ] = useState(false);
 
   const handleSubmit = async()=>{
     try {
@@ -38,6 +38,7 @@ export default function CostForecastPage() {
       });
       
       setPendingChanges([]); 
+      getLastUpdated({frc: frc, is_revenue: 0, setLastUpdatedItem: setLastUpdatedItem});
     } catch (error) {
       console.error("Failed to sync values with Django backend:", error);
     } finally {
@@ -60,23 +61,10 @@ export default function CostForecastPage() {
       }
     };
 
+    getLastUpdated({frc: frc, is_revenue: 0, setLastUpdatedItem: setLastUpdatedItem});
     triggerVisitLog();
   }, [ frc ]);
 
-
-  useEffect(() => {
-    const getLastUpdated = async () => {
-      try {
-        const response = await lastUpdated(frc, 0);
-        setLastUpdatedItem({"user": response.user, "last_updated": response.last_updated})
-        console.log("Get last_updated: user", response.user, " last_updated", response.last_updated );
-      } catch (error) {
-        console.error("Failed to upload last_updated:", error);
-      }
-    };
-
-    getLastUpdated();
-  }, [ frc, isSaving ]);
 
   return (
     <>
@@ -94,6 +82,7 @@ export default function CostForecastPage() {
               frc={frc} 
               hidePreviousMonths={hidePreviousMonths} 
               setPendingChanges={setPendingChanges}
+              setLastUpdatedItem={setLastUpdatedItem}
             />
           </div>
           <LastUpdatedComponent lastUpdatedItem={lastUpdatedItem}/> 

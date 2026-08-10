@@ -13,10 +13,15 @@ import {
 
 import Modal from "./Modal";
 import { getDupData } from "../api/dup.api";
+import { saveCostsValues } from "../api/costs.api";
+import { logUserUpdateValues } from "../api/logs.api";
 import { dupApiToTableTransformer } from "../scripts/DupApiToTableTransformer";
 import { useDupColumns } from "../hooks/useDupColumns";
 import type { DupDivisionRow } from "..types/DupTypes";
 import { updateDupValue } from "../scripts/updateDupValue";
+import { getLastUpdated } from "../scripts/getLastUpdated";
+
+import { useAuth } from "../auth/AuthProvider";
 
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь", "Год, всего"];
 
@@ -31,11 +36,24 @@ type DupForecastProps = {
       }[]
     >
   >;
+  setLastUpdatedItem: React.Dispatch<
+    React.SetStateAction<
+      {
+        user: string;
+        last_updated: string;
+      }[]
+    >
+  >;
 };
 
 
-export default function DupForecastTable ({ frc, hidePreviousMonths, setPendingChanges }: DupForecastProps){
+export default function DupForecastTable ({ frc,
+                                          hidePreviousMonths, 
+                                          setPendingChanges, 
+                                          setLastUpdatedItem,
+}: DupForecastProps){
     const [ data, setData ] = useState<DupDivisionRow[]>([]);
+    const { user, login } = useAuth();
 
     const columns = useDupColumns(hidePreviousMonths);
 
@@ -90,6 +108,21 @@ export default function DupForecastTable ({ frc, hidePreviousMonths, setPendingC
 
             setData(old => updateDupValue(old, id, value));
           }, 
+          saveData: async (id: number, value: number) => {
+            try {
+              await saveCostsValues([{id: id, value: value}]);
+              await logUserUpdateValues({
+                user: user,
+                login: login,
+                frc: frc,
+                is_revenue: false,
+                save_values: [{ id: id, value: value }] 
+              });
+              getLastUpdated({frc: frc, is_revenue: 0, setLastUpdatedItem: setLastUpdatedItem});
+            } catch {
+              console.log("Error in cost table");
+            } 
+          },
         }
     });
 

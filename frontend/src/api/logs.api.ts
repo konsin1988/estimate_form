@@ -1,5 +1,6 @@
 import api from "./axios";
 import type { LastUpdatedItem } from '../types/LogTypes';
+import { useAuth } from "../auth/AuthProvider";
 
 
 export interface VisitedLogPayload {
@@ -22,7 +23,7 @@ export const logUserVisit = async (payload: VisitedLogPayload) => {
 
 export interface SaveValueItem {
   id: number;
-  subgroupName?: string; // Optional field, handles both your simple and composite ID cases
+  subgroupName?: string; 
   value: number;
 }
 

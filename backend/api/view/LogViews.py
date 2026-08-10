@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from api.models import EstimateLogsModel
+from zoneinfo import ZoneInfo
 
 class ToChar(Func):
     function = 'to_char'
@@ -97,7 +98,6 @@ class UpsertUpdatedLogsView(APIView):
         now_timestamp = timezone.now()
 
         try:
-            # 3. Try to fetch the existing row to handle the complex JSON merge
             log_entry = EstimateLogsModel.objects.using('fin').filter(
                 estimate_date=current_month_start,
                 login=input_login,
@@ -176,6 +176,10 @@ class UpsertUpdatedLogsView(APIView):
 
 class LastUpdatedAPIView(APIView):
     def get(self, request):
+        USE_TZ = True
+        TIME_ZONE = "Europe/Moscow"
+        moscow = ZoneInfo("Europe/Moscow")
+
         frc = request.GET.get("frc")
         is_revenue = request.GET.get("is_revenue")
         if not frc or not is_revenue:
@@ -188,18 +192,19 @@ class LastUpdatedAPIView(APIView):
                 is_revenue=is_revenue,
                 last_updated__isnull = False
             )
-            .annotate(
-                formatted_last_updated=Coalesce(
-                    ToChar('last_updated', Value('DD.MM.YYYY HH24:MI:SS')),
-                    Value('Данные отсутствуют')
-            ))
+            #.annotate(
+            #    formatted_last_updated=Coalesce(
+            #        ToChar('last_updated', Value('DD.MM.YYYY HH24:MI:SS')),
+            #        Value('Данные отсутствуют')
+            #))
             .order_by("-last_updated")
-            .values('user', 'formatted_last_updated')
+            .values('user', 'last_updated')
             .first()
         )
         if result:
             user_list = result['user'].split()
             user = f"{user_list[0]} {user_list[1][0]}.{user_list[2][0]}."
-            return Response({'user': user, 'last_updated': result['formatted_last_updated']})
+            last_updated = timezone.localtime(result['last_updated'], moscow).strftime("%d.%m.%Y %H:%M:%S")
+            return Response({'user': user, 'last_updated': last_updated })
         else: 
             return Response({'user': 'Нет данных', 'last_updated': 'Нет данных'})
