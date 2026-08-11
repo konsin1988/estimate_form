@@ -1,6 +1,5 @@
 import api from "./axios";
 import type { LastUpdatedItem } from '../types/LogTypes';
-import { useAuth } from "../auth/AuthProvider";
 
 
 export interface VisitedLogPayload {
