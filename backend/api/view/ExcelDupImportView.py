@@ -3,7 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from django.db import connections
-from api.models import CostDupMappingModel
+from django.db.models import Subquery
+from decimal import Decimal
+from api.models import CostDupMappingModel, CostEstModel
 
 import pandas as pd
 from datetime import datetime
@@ -63,6 +65,15 @@ class ExcelDupImportAPIView(APIView):
                 return
 
             with connections['fin'].cursor() as cursor:
+                # set 0 to amount 
+                cursor.execute("""
+                    UPDATE fin.cost_est t
+                    SET amount = 0.00
+                    FROM fin.cost_dup_mapping m
+                    WHERE t.type_1c = m.type_1c
+                    AND m.division IN ('ФОТ', 'Страховые взносы');
+                """)
+
                 cursor.execute("""
                  CREATE TEMP TABLE temp_cost_update (
                      company text,

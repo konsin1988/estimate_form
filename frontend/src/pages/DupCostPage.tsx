@@ -26,6 +26,9 @@ export default function DupCostPage() {
 
   const [ lastUpdatedItem, setLastUpdatedItem ] = useState<LastUpdatedItem>({"user": "", "last_updated": ""});
 
+  const [ refreshTrigger, setRefreshTrigger ] = useState(0);
+  const handleRefresh = () => setRefreshTrigger(prev => prev + 1);
+
   const handleSubmit = async()=>{
     try {
       await saveCostsValues(pendingChanges);
@@ -67,7 +70,7 @@ export default function DupCostPage() {
 
   return (
     <>
-      <DupFileUpload/>
+      <DupFileUpload onUploadSuccess={handleRefresh}/>
       <div className={`
                     fixed top-[19%] h-[69%] 
                     overflow-x-auto left-3 right-0 flex 
@@ -78,6 +81,7 @@ export default function DupCostPage() {
           hidePreviousMonths={hidePreviousMonths} 
           setPendingChanges={setPendingChanges}
           setLastUpdatedItem={ setLastUpdatedItem }
+          refreshTrigger={refreshTrigger}
         />
       </div>
       <LastUpdatedComponent lastUpdatedItem={lastUpdatedItem}/> 

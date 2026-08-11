@@ -3,7 +3,11 @@ import { useRef, useState } from "react";
 import { uploadCostExcel } from "../api/dup.api";
 import Modal from "./Modal";
 
-export default function DupFileUpload() {
+type UploadProps = {
+  onUploadSuccess: () => void;
+};
+
+export default function DupFileUpload({onUploadSuccess}: UploadProps ) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -64,7 +68,10 @@ export default function DupFileUpload() {
     </div>
 	  <Modal 
 	  		isOpen={isOpen}
-	  		onClose={() => setOpen(false)}
+	  		onClose={() => {
+          setOpen(false)
+          onUploadSuccess();
+        }}
 	  		message={ message }
 	  />
     </>
