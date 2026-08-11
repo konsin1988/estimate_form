@@ -51,12 +51,14 @@ export default function NumberInput({
     if (inputValue === "") {
       setDisplayValue("0");
       onChange(0);
+      onBlur?.(0);
       return;
     }
     const numericValue = parse(checkNumbers(inputValue));
     setDisplayValue(format(numericValue));
     onChange(numericValue);
     onBlur?.(numericValue);
+
 
   };
 
@@ -66,7 +68,10 @@ export default function NumberInput({
       onFocus={handleFocus}
       onChange={handleChange} 
       onBlur={handleBlur}
-      className="w-full text-center rounded-md px-1 py-0.5 text-gray-700 bg-[#deebfc] focus:bg-[#f7f5f0]"
+      className={`w-full text-center rounded-md px-1 
+          py-0.5 text-gray-700 
+           focus:bg-[#f7f5f0] bg-[#deebfc]
+          `}
     />
   );
 }

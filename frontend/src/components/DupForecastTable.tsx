@@ -44,6 +44,7 @@ type DupForecastProps = {
       }[]
     >
   >;
+  refreshTrigger: number;
 };
 
 
@@ -51,6 +52,7 @@ export default function DupForecastTable ({ frc,
                                           hidePreviousMonths, 
                                           setPendingChanges, 
                                           setLastUpdatedItem,
+                                          refreshTrigger,
 }: DupForecastProps){
     const [ data, setData ] = useState<DupDivisionRow[]>([]);
     const { user, login } = useAuth();
@@ -68,7 +70,7 @@ export default function DupForecastTable ({ frc,
         }
       };
       fetchData();
-    }, [frc])
+    }, [ frc, refreshTrigger ])
 
 
     const table = useReactTable({

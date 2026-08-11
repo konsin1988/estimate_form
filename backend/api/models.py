@@ -310,10 +310,6 @@ class CostDupMappingModel(models.Model):
     division = models.CharField(blank=True, null=False)
     cons_type = models.CharField(blank=True, null=False)
 
-    # managers
-    objects = models.Manager() # Default manager
-    rtt = RttManager()  # Custom manager
-
     def __str__(self):
         return self.division
 
