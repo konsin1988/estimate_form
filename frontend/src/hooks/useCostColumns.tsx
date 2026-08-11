@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useNumberFormatter } from "../hooks/useNumberFormatter";
 import NumberInput from "../components/NumberInput";
@@ -33,6 +33,7 @@ const columnHelper =
 
 export function useCostColumns(hidePreviousMonths, frc) {
   const { format, parse, checkNumbers } = useNumberFormatter();
+
   const currentMonthIndex = new Date().getMonth();
 
   return useMemo(() => {
