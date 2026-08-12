@@ -66,12 +66,13 @@ class ExcelDupImportAPIView(APIView):
 
             with connections['fin'].cursor() as cursor:
                 # set 0 to amount 
-                cursor.execute("""
+                cursor.execute(f"""
                     UPDATE fin.cost_est t
                     SET amount = 0.00
                     FROM fin.cost_dup_mapping m
                     WHERE t.type_1c = m.type_1c
-                    AND m.division IN ('ФОТ', 'Страховые взносы');
+                    AND m.division IN ('ФОТ', 'Страховые взносы')
+                    AND t.estimate_date >= '{estimate_date}';
                 """)
 
                 cursor.execute("""
