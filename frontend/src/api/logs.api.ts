@@ -32,6 +32,7 @@ export interface UpdatedLogPayload {
   frc: string;
   is_revenue: boolean;
   save_values: SaveValueItem[]; 
+  is_confirm?: boolean;
 }
 
 export const logUserUpdateValues = async (payload: UpdatedLogPayload) => {

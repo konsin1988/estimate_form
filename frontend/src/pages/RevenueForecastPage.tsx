@@ -35,7 +35,8 @@ export default function RevenueForecastPage() {
         login: login,
         frc: frc,
         is_revenue: true,
-        save_values: pendingChanges
+        save_values: pendingChanges,
+        is_confirm: true
       });
       
       setPendingChanges([]); 

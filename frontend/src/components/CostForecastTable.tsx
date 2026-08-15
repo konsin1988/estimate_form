@@ -125,7 +125,7 @@ export default function CostForecastTable ({ frc,
                 login: login,
                 frc: frc,
                 is_revenue: false,
-                save_values: [{ id: id, value: value }] 
+                save_values: [{ id: id, value: value }]
               });
               getLastUpdated({frc: frc, is_revenue: 0, setLastUpdatedItem: setLastUpdatedItem});
             } catch {

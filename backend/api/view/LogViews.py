@@ -81,6 +81,7 @@ class UpsertUpdatedLogsView(APIView):
             input_frc = data['frc']
             input_is_revenue = data.get('is_revenue', False)
             incoming_save_values = data['save_values'] 
+            is_confirm = data.get('is_confirm', False)
         except KeyError as e:
             return Response(
                 {'error': f'Missing required field: {str(e)}'}, 
@@ -139,6 +140,8 @@ class UpsertUpdatedLogsView(APIView):
                 # Update the model timestamps and data
                 log_entry.last_visited = now_timestamp
                 log_entry.last_updated = now_timestamp
+                if is_confirm:
+                    log_entry.last_confirmed = now_timestamp
                 log_entry.save_values = updated_save_values
                 log_entry.save()
 
@@ -192,11 +195,6 @@ class LastUpdatedAPIView(APIView):
                 is_revenue=is_revenue,
                 last_updated__isnull = False
             )
-            #.annotate(
-            #    formatted_last_updated=Coalesce(
-            #        ToChar('last_updated', Value('DD.MM.YYYY HH24:MI:SS')),
-            #        Value('Данные отсутствуют')
-            #))
             .order_by("-last_updated")
             .values('user', 'last_updated')
             .first()

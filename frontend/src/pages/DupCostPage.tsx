@@ -37,7 +37,8 @@ export default function DupCostPage() {
         login: login,
         frc: frc,
         is_revenue: false,
-        save_values: pendingChanges
+        save_values: pendingChanges,
+        is_confirm: true
       });
       console.log("Success:", response.message);
       
