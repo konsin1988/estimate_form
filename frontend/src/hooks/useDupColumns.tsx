@@ -213,7 +213,9 @@ export function useDupColumns(hidePreviousMonths) {
             header: "Факт+Прогноз",
 
             meta: {
-              headerClassName: "bg-gray-200 sticky top-7 z-30 border-b-black" 
+              headerClassName: `bg-gray-100 sticky top-7 
+                          z-30 border-b border-b-gray-200
+                          border-l border-l-gray-200 border-r border-r-gray-200`
             },
       
             cell: ({ row }) => {
@@ -232,6 +234,36 @@ export function useDupColumns(hidePreviousMonths) {
                   );
                 },
                 0
+              );
+      
+              return format(total);
+            },
+          }),
+
+          columnHelper.display({
+            id: "year_var",
+      
+            header: "Отклонение",
+            meta: {
+              headerClassName: "bg-[#fafcff] sticky top-7 z-30 border-b border-b-gray-200 border-r-1 border-r-gray-200"
+            },
+      
+            cell: ({ row }) => {
+              const total = months.reduce(
+                (sum, month) => {
+                  const source =
+                    month.key < currentMonth
+                      ? "Факт"
+                      : "Прогноз";
+                  return (
+                    sum +
+                  (row.original.values?.[
+                    month.key
+                  ]?.["План"]?.amount ?? 0) - 
+                    (row.original.values?.[
+                      month.key
+                    ]?.[source]?.amount ?? 0))
+                }, 0
               );
       
               return format(total);
