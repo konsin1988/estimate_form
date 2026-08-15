@@ -121,6 +121,7 @@ class EstimateLogsModel(models.Model):
     last_visited = models.DateTimeField()
     last_updated = models.DateTimeField(null=True, blank=True)
     save_values = models.JSONField(null=True, blank=True)
+    last_confirmed = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return self.user

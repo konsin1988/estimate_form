@@ -34,16 +34,15 @@ export default function CostForecastPage() {
         login: login,
         frc: frc,
         is_revenue: false,
-        save_values: pendingChanges
+        save_values: pendingChanges,
+        is_confirm: true
       });
       
       setPendingChanges([]); 
       getLastUpdated({frc: frc, is_revenue: 0, setLastUpdatedItem: setLastUpdatedItem});
     } catch (error) {
       console.error("Failed to sync values with Django backend:", error);
-    } finally {
-      setIsSaving(prev => !prev);
-    }
+    } 
   };
 
   useEffect(() => {
