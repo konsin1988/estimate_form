@@ -159,7 +159,7 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPend
 
 
   return (
-      <table className={`border-separate border-spacing-0 border-b border-gray-200 mr-5`}>
+      <table className={`border-collapse border-spacing-0 border-b border-gray-200 mr-5`}>
         <thead> 
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id}>
@@ -218,6 +218,9 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPend
                             : "bg-gray-100 border-l-1 border-gray-200"}
                           ${cell.column.id === "name"
                             ? "sticky bg-[#fafcff] left-0 z-20 border-none text-left"
+                            : ""}
+                          ${cell.column.id === "year_var"
+                            ? "border-r-2 border-gray-200 bg-transparent"
                             : ""}
                       `}
                     >

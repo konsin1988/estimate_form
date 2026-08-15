@@ -130,7 +130,7 @@ export default function DupForecastTable ({ frc,
 
 
   return (
-      <table className={`border-separate border-spacing-0 mr-5 border-b border-b-gray-200`}>
+      <table className={`border-collapse border-spacing-0 mr-5 border-b border-b-gray-200`}>
         <thead> 
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id}>
@@ -151,6 +151,9 @@ export default function DupForecastTable ({ frc,
                                     ? "sticky left-0 top-0 z-40 bg-[#fafcff]"
                                     : "sticky left-0 top-7 z-40 bg-[#fafcff]"
                                   : ""}
+                          ${header.column.id === "year_var"
+                            ? "border-r-2 border-gray-200 bg-transparent"
+                            : ""}
                   `}
                 >
                   {header.isPlaceholder
@@ -192,6 +195,9 @@ export default function DupForecastTable ({ frc,
                             : "bg-gray-100 border-l-1 border-gray-200"}
                           ${cell.column.id === "name"
                             ? "sticky bg-[#fafcff] left-0 z-20 border-none text-left"
+                            : ""}
+                          ${cell.column.id === "year_var"
+                            ? "border-r-2 border-gray-200 bg-transparent"
                             : ""}
                       `}
                     >
