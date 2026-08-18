@@ -208,8 +208,10 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPend
               >
                 {row
                   .getVisibleCells()
-                  .map(cell => (
-                    <td 
+                  .map(cell => {
+                    const isYearVar = cell.column.id === "year_var";
+                    const isOverload = cell.getValue() < 0;
+                    return (<td 
                       key={cell.id}
                       className={`
                           border-collapse px-2 py-1 text-center border-b border-b-gray-200
@@ -219,9 +221,12 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPend
                           ${cell.column.id === "name"
                             ? "sticky bg-[#fafcff] left-0 z-20 border-none text-left"
                             : ""}
-                          ${cell.column.id === "year_var"
+                          ${isYearVar
                             ? "border-r-2 border-gray-200 bg-transparent"
                             : ""}
+                          ${isYearVar && row.original.type === "group" && isOverload 
+                            ? "!bg-[#ffe9e8] text-gray-700"
+                            : "" }
                       `}
                     >
                       {flexRender(
@@ -230,7 +235,7 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPend
                         cell.getContext()
                       )}
                     </td>
-                  ))}
+                  )})}
               </tr>
             ))}
         </tbody>

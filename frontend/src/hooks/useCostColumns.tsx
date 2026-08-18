@@ -238,35 +238,40 @@ export function useCostColumns(hidePreviousMonths, frc) {
             },
           }),
 
-          columnHelper.display({
-            id: "year_var",
-      
-            header: "Отклонение",
-            meta: {
-              headerClassName: "bg-[#fafcff] sticky top-7 z-30 border-b border-b-gray-200 border-r-1 border-r-gray-200"
+          columnHelper.accessor(
+            row => {
+              return months.reduce((sum, month) => {
+                const source =
+                  month.key < currentMonth
+                    ? "Факт"
+                    : "Прогноз";
+          
+                return (
+                  sum +
+                  (row.values?.[month.key]?.["План"]?.amount ?? 0) -
+                  (row.values?.[month.key]?.[source]?.amount ?? 0)
+                );
+              }, 0);
             },
-      
-            cell: ({ row }) => {
-              const total = months.reduce(
-                (sum, month) => {
-                  const source =
-                    month.key < currentMonth
-                      ? "Факт"
-                      : "Прогноз";
-                  return (
-                    sum +
-                  (row.original.values?.[
-                    month.key
-                  ]?.["План"]?.amount ?? 0) - 
-                    (row.original.values?.[
-                      month.key
-                    ]?.[source]?.amount ?? 0))
-                }, 0
-              );
-      
-              return format(total);
-            },
-          }),
+            {
+              id: "year_var",
+          
+              header: "Отклонение",
+          
+              meta: {
+                headerClassName:
+                  "bg-[#fafcff] sticky top-7 z-30 border-b border-b-gray-200 border-r-1 border-r-gray-200",
+              },
+          
+              cell: ({ getValue }) => {
+                const value = getValue<number | null>();
+          
+                return value === null
+                  ? null
+                  : format(value);
+              },
+            }
+          ),
         ],
       }),
     ];
