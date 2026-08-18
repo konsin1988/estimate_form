@@ -187,7 +187,10 @@ export default function CostForecastTable ({ frc,
               >
                 {row
                   .getVisibleCells()
-                  .map(cell => (
+                  .map(cell => {
+                    const isYearVar = cell.column.id === "year_var";
+                    const isOverload = cell.getValue() < 0;
+                    return (
                     <td 
                       key={cell.id}
                       className={`
@@ -201,6 +204,9 @@ export default function CostForecastTable ({ frc,
                           ${cell.column.id === "year_var"
                             ? "border-r-2 border-gray-200 bg-transparent"
                             : ""}
+                          ${isYearVar && isOverload 
+                            ? "!bg-[#ffe9e8] text-gray-700"
+                            : "" }
                       `}
                     >
                       {flexRender(
@@ -209,7 +215,7 @@ export default function CostForecastTable ({ frc,
                         cell.getContext()
                       )}
                     </td>
-                  ))}
+                  )})}
               </tr>
             ))}
         </tbody>
