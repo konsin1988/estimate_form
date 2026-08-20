@@ -210,7 +210,7 @@ export default function RevenueForecastTable ({ frc, hidePreviousMonths, setPend
                   .getVisibleCells()
                   .map(cell => {
                     const isYearVar = cell.column.id === "year_var";
-                    const isOverload = cell.getValue() < 0;
+                    const isOverload = cell.getValue() > 0;
                     return (<td 
                       key={cell.id}
                       className={`
