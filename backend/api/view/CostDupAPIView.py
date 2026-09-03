@@ -143,13 +143,13 @@ class CostDupAPIView(APIView):
         est = (
             dates['est']
             .merge(mapping_frc, how='cross')
-            .merge(est, how='left', on=['date_dt', 'frc', 'group', 'subgroup'])
+            .merge(est, how='inner', on=['date_dt', 'frc', 'group', 'subgroup'])
             .assign(
-                amount = lambda x: x['amount'].astype('float64').fillna(0),
+                amount = lambda x: x['amount'].fillna('0').astype('float64'),
                 source = 'Прогноз',
                 is_editable=is_editable(),
-               frc=lambda x: x['frc'].fillna("Без ЦФО"),
-           )
+                frc=lambda x: x['frc'].fillna("Без ЦФО"),
+            )
             .rename(columns={'date_dt': 'month'})
             [['id', 'month', 'month_name', 'source', 'division', 'frc', 'subgroup', 'amount', 'is_editable']]
         )
@@ -182,10 +182,11 @@ class CostDupAPIView(APIView):
             .merge(mapping_frc, how='cross')
             .merge(est_prev_month, how='left', on=['date_dt', 'frc', 'group', 'subgroup'])
             .assign(
-                amount = lambda x: x['amount'].astype('float64').fillna(0),
+                amount = lambda x: x['amount'].fillna('0').astype('float64'),
+                id = lambda x: x['id'].fillna('0').astype('int64'),
                 source = 'Прогноз',
                 is_editable=0,
-               frc=lambda x: x['frc'].fillna("Без ЦФО"),
+                frc=lambda x: x['frc'].fillna("Без ЦФО"),
            )
             .rename(columns={'date_dt': 'month'})
             [['id', 'month', 'month_name', 'source', 'division', 'frc', 'subgroup', 'amount', 'is_editable']]

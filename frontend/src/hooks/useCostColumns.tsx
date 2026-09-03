@@ -26,6 +26,7 @@ const months = [
 ];
 
 const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
+const previousMonth = dayjs().subtract(1, "month").startOf("month").format("YYYY-MM-DD");
 const thresholdMonth = dayjs().subtract(1, "month").startOf("month").format("YYYY-MM-DD"); 
 
 const columnHelper =
@@ -220,7 +221,7 @@ export function useCostColumns(hidePreviousMonths, frc) {
               const total = months.reduce(
                 (sum, month) => {
                   const source =
-                    month.key < currentMonth
+                    month.key < previousMonth
                       ? "Факт"
                       : "Прогноз";
       
@@ -242,7 +243,7 @@ export function useCostColumns(hidePreviousMonths, frc) {
             row => {
               return months.reduce((sum, month) => {
                 const source =
-                  month.key < currentMonth
+                  month.key < previousMonth
                     ? "Факт"
                     : "Прогноз";
           
