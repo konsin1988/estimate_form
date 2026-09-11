@@ -27,4 +27,5 @@ urlpatterns = [
     path("api/logs/lastupdated/", LastUpdatedAPIView.as_view(), name="last-updated"),
 
     path("api/import/dup/", ExcelDupImportAPIView.as_view(), name="dup-excel-import"),
+    path("api/frc/list/admin/", FrcAdminListAPIView.as_view(), name="frc-admin-list") 
 ]

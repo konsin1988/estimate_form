@@ -77,7 +77,7 @@ export default function AuthProvider({
         setLogin(res_frc.data[0].login);
 
         if (res_frc.data[0].frc === "admin") {
-          const frc_all = await api.get(`/frc/list/`);
+          const frc_all = await api.get(`/frc/list/admin`);
           if (
             frc_all.status !== 200 ||
             frc_all.data.length === 0
