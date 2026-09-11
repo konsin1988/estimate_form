@@ -22,7 +22,6 @@ import logging
 import calendar
 
 from django.http import JsonResponse
-from django.db import connections
 from django.conf import settings
 import redis
 
@@ -142,4 +141,33 @@ class SaveEstimatesAPIView(APIView):
 class SaveEstLog(CreateAPIView):
     queryset = RevenueEstLog.objects.all()
     serializer_class = EstLogSerializer 
+
+
+class FrcAdminListAPIView(APIView):
+    def get(self, request):
+        query = """
+            select 
+            	fi.frc,
+            	'admin' as user,
+            	'admin' as login,
+            	case 
+            		when fi.rev_frc = true then 1
+            		else 0
+            	end as is_revenue,
+            	1 as is_cost,
+            	1 as is_dup
+            from fin.frc_index fi
+        """
+        with connections['fin'].cursor() as cursor:
+            cursor.execute(query)
+
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+
+        data = [
+            dict(zip(columns, row))
+            for row in rows
+        ]
+
+        return Response(data, status=status.HTTP_200_OK)
 
