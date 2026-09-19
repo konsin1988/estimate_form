@@ -13,6 +13,19 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    restart: unless-stopped 
+    mem_limit: 1G
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M 
+    logging:
+      driver: json-file
+      options:
+        max-size: "10M"
+        max-file: "3" 
     networks:
         - estimate-network
 
@@ -48,6 +61,19 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+    restart: unless-stopped 
+    mem_limit: 1G
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M 
+    logging:
+      driver: json-file
+      options:
+        max-size: "10M"
+        max-file: "3" 
     volumes:
       - ./backend/:/app/
     networks:
