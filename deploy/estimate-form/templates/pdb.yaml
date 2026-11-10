@@ -1,0 +1,31 @@
+{{- if .Values.backend.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "estimate-form.backend.fullname" . }}
+  labels:
+    {{- include "estimate-form.labels" . | nindent 4 }}
+    {{- include "estimate-form.componentLabels" (dict "component" "backend") | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.backend.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "estimate-form.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+---
+{{- end }}
+{{- if .Values.frontend.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "estimate-form.frontend.fullname" . }}
+  labels:
+    {{- include "estimate-form.labels" . | nindent 4 }}
+    {{- include "estimate-form.componentLabels" (dict "component" "frontend") | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.frontend.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "estimate-form.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+{{- end }}

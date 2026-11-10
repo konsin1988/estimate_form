@@ -1,0 +1,93 @@
+# Example production overrides for the estimate-form chart.
+# Copy, adjust and install with:
+#   helm upgrade --install estimate-form deploy/estimate-form \
+#     -n estimate-form --create-namespace \
+#     -f deploy/estimate-form/values-production.yaml
+
+global:
+  # Private registry prefix for all images (backend, frontend and the
+  # nginx-prometheus-exporter sidecar).
+  imageRegistry: registry.corp.example.com/team
+  imagePullSecrets:
+    - name: regcred
+
+backend:
+  replicaCount: 3
+
+  gunicorn:
+    workers: 4
+
+  image:
+    # tag defaults to the chart appVersion; pin explicitly per release:
+    tag: "1.0.0"
+
+  # Django / crypto secrets -- CHANGE ME. Do not commit real values.
+  secret:
+    secretKey: "CHANGE_ME-django-secret-key"
+    encryptKey: "CHANGE_ME-aes-key"
+    iv: "CHANGE_ME-aes-iv"
+    db:
+      # Optional pass-through variables (django itself uses the service file).
+      name: ""
+      user: ""
+      password: ""
+      host: ""
+      port: ""
+
+  postgres:
+    viaSecret: true
+    # Full pg_service.conf content (the [revenue] section is the alias used by
+    # settings.py). Indentation matters; use Unix (LF) line endings.
+    serviceFile: |
+      [revenue]
+      host=172.16.3.158
+      port=5432
+      dbname=skud_va
+      user=d_konshin
+    # Full libpq password file content. The chart fixes permissions to 0600
+    # automatically; do NOT commit real values to git.
+    pgpass: |
+      172.16.3.158:5432:skud_va:d_konshin:CHANGE_ME
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
+frontend:
+  replicaCount: 2
+
+  image:
+    tag: "1.0.0"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  host: estimate.corp.example.com
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+    secretName: estimate-form-tls
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    # MUST match the serviceMonitorSelector labels of your Prometheus
+    # (the release name of your kube-prometheus-stack installation).
+    labels:
+      release: kube-prometheus-stack
+  grafana:
+    dashboard:
+      enabled: true

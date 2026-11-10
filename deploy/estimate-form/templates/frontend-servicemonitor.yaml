@@ -1,0 +1,22 @@
+{{- if and .Values.monitoring.serviceMonitor.enabled .Values.frontend.nginx.metrics.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "estimate-form.frontend.fullname" . }}
+  labels:
+    {{- include "estimate-form.labels" . | nindent 4 }}
+    {{- include "estimate-form.componentLabels" (dict "component" "frontend") | nindent 4 }}
+    {{- with .Values.monitoring.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "estimate-form.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
+{{- end }}
