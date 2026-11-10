@@ -1,0 +1,104 @@
+# Production values for the estimate-form chart.
+#
+# This file drives the GitOps deployment with ArgoCD (see deploy/argocd/):
+# the ArgoCD Application tracks the default branch and renders this chart
+# with the overrides below.
+#
+# GitLab CI (the release:values job) bumps backend/frontend image tags on
+# every pushed vX.Y.Z tag and commits the change back to the default
+# branch -- do not edit the tags manually.
+#
+# The file is SECRET-FREE by design: all credentials live in the
+# pre-created `estimate-form-backend-secret` Secret in the `estimate-form`
+# namespace (see deploy/argocd/README.md for the exact contents).
+
+global:
+  # GitLab Container Registry of this project. Effective image references:
+  #   git.rtt.digital/konsin1988/estimate-form/backend:<tag>
+  #   git.rtt.digital/konsin1988/estimate-form/frontend:<tag>
+  imageRegistry: git.rtt.digital/konsin1988/estimate-form
+  imagePullSecrets:
+    - name: gitlab-registry
+
+backend:
+  replicaCount: 3
+
+  gunicorn:
+    workers: 4
+    # Heavy, long-running API queries (matches docker-compose --timeout 900).
+    timeout: 900
+
+  image:
+    repository: backend
+    # Managed by GitLab CI; initial value matches the chart appVersion.
+    tag: "1.0.0"
+
+  # Credentials are delivered through a pre-created Secret so that nothing
+  # sensitive is stored in git. Required keys:
+  #   pg-service.conf, pg-pass, secret-key, encrypt-key, iv
+  existingSecret: estimate-form-backend-secret
+
+  # Mount the pg connection files from the Secret into /pg-secrets
+  # (the startup script copies them with the correct permissions).
+  postgres:
+    viaSecret: true
+
+  env:
+    debug: "false"
+    allowedHosts: "estimate.rtt.digital"
+    # csrfTrustedOrigins: derived from the ingress host/scheme when empty.
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
+frontend:
+  replicaCount: 2
+
+  image:
+    repository: frontend
+    # Managed by GitLab CI; initial value matches the chart appVersion.
+    tag: "1.0.0"
+
+  nginx:
+    metrics:
+      exporter:
+        image:
+          # The exporter sidecar comes from Docker Hub, not from the project
+          # registry -- pin its registry explicitly so global.imageRegistry
+          # (the GitLab registry) does not rewrite it to a non-existent
+          # image reference.
+          registry: docker.io
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  host: estimate.rtt.digital
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+    secretName: estimate-form-tls
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    # Must match the serviceMonitorSelector labels of the Prometheus
+    # release (kube-prometheus-stack) running in the cluster.
+    labels:
+      release: kube-prometheus-stack
+  grafana:
+    dashboard:
+      enabled: true

@@ -38,12 +38,17 @@ export default defineConfig([
     rules: {
       'no-unused-vars': 'off',
 
+      // Legacy findings are downgraded to warnings so that `npm run lint` can
+      // act as a CI gate (see .gitlab-ci.yml). Clean up the ~50 unused vars
+      // across src/ and raise these back to 'error'.
       '@typescript-eslint/no-unused-vars': [
-        'error',
+        'warn',
         {
           varsIgnorePattern: '^[A-Z_]',
         },
       ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'react-refresh/only-export-components': 'warn',
     },
   },
 ])

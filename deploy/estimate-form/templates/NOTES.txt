@@ -1,0 +1,57 @@
+{{ .Chart.Name }} has been deployed as release {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+Components
+  backend  (Django + gunicorn):
+    deployment : {{ include "estimate-form.backend.fullname" . }}
+    service    : {{ include "estimate-form.backend.fullname" . }}:{{ .Values.backend.service.port }}
+    health     : GET /health/
+    metrics    : GET /metrics  (django-prometheus)
+
+  frontend  (React static + nginx, proxies /api/ to the backend):
+    deployment : {{ include "estimate-form.frontend.fullname" . }}
+    service    : {{ include "estimate-form.frontend.fullname" . }}:{{ .Values.frontend.service.port }}
+{{- if .Values.frontend.nginx.metrics.enabled }}
+    metrics    : nginx-prometheus-exporter sidecar on port 9113
+{{- end }}
+
+1. Check the pods:
+   kubectl -n {{ .Release.Namespace }} get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2. Quick smoke test:
+   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "estimate-form.backend.fullname" . }} 8000:{{ .Values.backend.service.port }}
+   curl http://localhost:8000/health/
+   curl http://localhost:8000/metrics | head
+
+{{- if .Values.ingress.enabled }}
+
+3. The app is exposed via ingress class "{{ .Values.ingress.className }}" at host "{{ .Values.ingress.host }}"
+   (TLS {{ ternary "enabled" "disabled" .Values.ingress.tls.enabled }}).
+   Make sure DNS points to the ingress controller and that a backend.csrfTrustedOrigins
+   issue does not block POST requests from the browser.
+{{- end }}
+
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+
+4. ServiceMonitors were created for Prometheus Operator.
+   Their discovery labels are:
+{{ toYaml .Values.monitoring.serviceMonitor.labels | indent 4 }}
+   These MUST match the serviceMonitorSelector of your Prometheus instance
+   (kube-prometheus-stack: usually release: <name of the stack release>).
+   Verify in Prometheus UI -> Status -> Targets / Service Monitors.
+{{- end }}
+
+{{- if .Values.monitoring.grafana.dashboard.enabled }}
+
+5. A Grafana dashboard was created as a ConfigMap:
+   {{ include "estimate-form.fullname" . }}-grafana-dashboard
+   If your Grafana runs the dashboard sidecar with label
+{{ toYaml .Values.monitoring.grafana.dashboard.labels | indent 4 }}
+   the dashboard "Estimate Form / Overview" appears automatically (folder: estimate-form).
+   Otherwise export it manually:
+   kubectl -n {{ .Release.Namespace }} get cm {{ include "estimate-form.fullname" . }}-grafana-dashboard \
+     -o jsonpath='{.data.estimate-form-overview\.json}' > dashboard.json
+{{- end }}
+
+6. Logs are written to stdout (Django logging + nginx access/error logs), so any
+   Promtail/Alloy DaemonSet ships them to Loki without extra configuration:
+   LogQL: {namespace="{{ .Release.Namespace }}", pod=~"{{ include "estimate-form.fullname" . }}-backend-.*"}

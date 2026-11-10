@@ -1,0 +1,19 @@
+apiVersion: v2
+name: estimate-form
+description: |
+  Monthly forecast collection form (React/Vite frontend served by nginx,
+  Django REST backend served by gunicorn, external PostgreSQL).
+
+  Includes Prometheus ServiceMonitors (backend /metrics and nginx exporter)
+  and a ready-to-import Grafana dashboard. Logs are written to stdout and are
+  therefore available to Loki/Promtail/Alloy without extra configuration.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - django
+  - react
+  - estimate
+  - forecast
+maintainers:
+  - name: konsin1988

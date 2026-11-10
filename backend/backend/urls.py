@@ -19,5 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include("api.urls"))
+    path('', include("api.urls")),
+    # Prometheus metrics endpoint: GET /metrics
+    path('', include("django_prometheus.urls")),
 ]

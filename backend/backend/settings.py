@@ -29,9 +29,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "api",
+    "django_prometheus",
 ]
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -40,12 +42,20 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "corsheaders.middleware.CorsMiddleware",
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# Optional (empty by default, keeps previous behaviour when the env var is unset).
+# Needed when the app is served behind an HTTPS ingress: Django verifies the
+# browser's Origin header against this list on unsafe (POST/PUT/DELETE) requests.
+CSRF_TRUSTED_ORIGINS = [
+    o for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
+]
 
 ROOT_URLCONF = 'backend.urls'
 
