@@ -1,0 +1,192 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "estimate-form.backend.fullname" . }}
+  labels:
+    {{- include "estimate-form.labels" . | nindent 4 }}
+    {{- include "estimate-form.componentLabels" (dict "component" "backend") | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      {{- include "estimate-form.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "estimate-form.labels" . | nindent 8 }}
+        {{- include "estimate-form.componentLabels" (dict "component" "backend") | nindent 8 }}
+      {{- if not .Values.backend.existingSecret }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/backend-secret.yaml") . | sha256sum }}
+      {{- end }}
+    spec:
+      {{- include "estimate-form.imagePullSecrets" (dict "global" .Values.global) | nindent 6 }}
+      serviceAccountName: {{ include "estimate-form.serviceAccountName" . }}
+      {{- with .Values.backend.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: {{ include "estimate-form.image" (dict "image" .Values.backend.image "global" .Values.global "chart" .Chart) }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Prometheus multiprocess registry directory (shared by all gunicorn workers).
+              mkdir -p "${PROMETHEUS_MULTIPROC_DIR:-/tmp/prometheus-multiproc}"
+              # Install PostgreSQL connection files from the mounted Secret.
+              # libpq requires the password file to be owned by the current user
+              # with 0600 permissions, hence the copy (and not a direct mount).
+              if [ -d /pg-secrets ]; then
+                if [ -f /pg-secrets/pg-service.conf ]; then
+                  cp -f /pg-secrets/pg-service.conf /app/.pg_service.conf
+                fi
+                if [ -f /pg-secrets/pg-pass ]; then
+                  (umask 177 && cp -f /pg-secrets/pg-pass /app/.my_pgpass)
+                  chmod 600 /app/.my_pgpass
+                fi
+              fi
+              exec gunicorn backend.wsgi:application \
+                --bind 0.0.0.0:{{ .Values.backend.service.port }} \
+                --workers {{ .Values.backend.gunicorn.workers }} \
+                --threads {{ .Values.backend.gunicorn.threads }} \
+                --worker-class {{ .Values.backend.gunicorn.workerClass }} \
+                --timeout {{ .Values.backend.gunicorn.timeout }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.service.port }}
+              protocol: TCP
+          env:
+            - name: DJANGO_SETTINGS_MODULE
+              value: backend.settings
+            - name: DEBUG
+              value: {{ .Values.backend.env.debug | quote }}
+            - name: ALLOWED_HOSTS
+              value: {{ .Values.backend.env.allowedHosts | quote }}
+            {{- $csrf := .Values.backend.env.csrfTrustedOrigins | default "" }}
+            {{- if and (not $csrf) .Values.ingress.enabled .Values.ingress.host }}
+            {{- $scheme := ternary "https" "http" .Values.ingress.tls.enabled }}
+            {{- $csrf = printf "%s://%s" $scheme .Values.ingress.host }}
+            {{- end }}
+            - name: CSRF_TRUSTED_ORIGINS
+              value: {{ $csrf | quote }}
+            - name: PGSERVICEFILE
+              value: /app/.pg_service.conf
+            - name: PROMETHEUS_MULTIPROC_DIR
+              value: /prometheus/multiproc
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "estimate-form.backend.secretName" . }}
+                  key: secret-key
+                  optional: {{ not (empty .Values.backend.existingSecret) }}
+            - name: ENCRYPT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "estimate-form.backend.secretName" . }}
+                  key: encrypt-key
+                  optional: {{ not (empty .Values.backend.existingSecret) }}
+            - name: IV
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "estimate-form.backend.secretName" . }}
+                  key: iv
+                  optional: {{ not (empty .Values.backend.existingSecret) }}
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "estimate-form.backend.secretName" . }}
+                  key: db-name
+                  optional: true
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "estimate-form.backend.secretName" . }}
+                  key: db-user
+                  optional: true
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "estimate-form.backend.secretName" . }}
+                  key: db-password
+                  optional: true
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "estimate-form.backend.secretName" . }}
+                  key: db-host
+                  optional: true
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "estimate-form.backend.secretName" . }}
+                  key: db-port
+                  optional: true
+            {{- with .Values.backend.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: /health/
+              port: http
+            failureThreshold: {{ .Values.backend.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.backend.probes.startup.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: http
+            periodSeconds: {{ .Values.backend.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.liveness.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /health/
+              port: http
+            periodSeconds: {{ .Values.backend.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.readiness.failureThreshold }}
+          {{- with .Values.backend.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: prometheus-multiproc
+              mountPath: /prometheus/multiproc
+            {{- if .Values.backend.postgres.viaSecret }}
+            - name: pg-secrets
+              mountPath: /pg-secrets
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: prometheus-multiproc
+          emptyDir: {}
+        {{- if .Values.backend.postgres.viaSecret }}
+        - name: pg-secrets
+          secret:
+            secretName: {{ include "estimate-form.backend.secretName" . }}
+        {{- end }}

@@ -1,0 +1,254 @@
+# Default values for the estimate-form chart.
+# Override per-environment in a separate values file (see values-production.yaml).
+
+# -- Global settings applied to all images.
+global:
+  # -- Private registry prefix prepended to every image repository,
+  #    e.g. `registry.corp.example.com/team`. Leave empty to use Docker Hub.
+  imageRegistry: ""
+  # -- Names of existing Secrets with registry credentials.
+  #    Example: [regcred]
+  imagePullSecrets: []
+
+# -- Partially override the chart name (used in resource names).
+nameOverride: ""
+# -- Fully override generated resource names.
+fullnameOverride: ""
+
+# -- Create a dedicated ServiceAccount for the application pods.
+serviceAccount:
+  create: true
+  # -- Explicit ServiceAccount name (generated when empty).
+  name: ""
+  annotations: {}
+
+backend:
+  image:
+    # -- Registry for the backend image (overrides global.imageRegistry).
+    registry: ""
+    # -- Image repository. With a global registry set, the effective image
+    #    becomes `<registry>/<repository>:<tag>`.
+    repository: estimate-form-backend
+    # -- Image tag. Defaults to the chart's appVersion when empty.
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  # -- Number of gunicorn backend replicas.
+  replicaCount: 2
+
+  # -- Gunicorn server settings.
+  gunicorn:
+    workers: 3
+    threads: 1
+    workerClass: sync
+    # -- Matches docker-compose (`--timeout 900`): the API runs long, heavy queries.
+    timeout: 900
+
+  service:
+    type: ClusterIP
+    # -- Service port (gunicorn listens on 8000).
+    port: 8000
+
+  # -- Plain (non-sensitive) environment variables.
+  env:
+    debug: "false"
+    allowedHosts: "*"
+    # -- Explicit CSRF trusted origins (comma-separated), e.g.
+    #    "https://estimate.corp.example.com". When empty, it is derived
+    #    automatically from ingress.host and ingress.tls.enabled.
+    csrfTrustedOrigins: ""
+
+  # -- PostgreSQL connection files.
+  # The app connects through a libpq *service file* + *password file*
+  # (see .pg_service.conf / .my_pgpass in the repo). When `viaSecret` is
+  # true, provide their full contents here: they are stored in a Kubernetes
+  # Secret and copied to the right place (with 0600 permissions for the
+  # password file) by the container's startup script.
+  postgres:
+    viaSecret: true
+    # -- Full content of pg_service.conf. Must contain the `[revenue]` section,
+    #    e.g.:
+    #      [revenue]
+    #      host=172.16.3.158
+    #      port=5432
+    #      dbname=skud_va
+    #      user=d_konshin
+    serviceFile: ""
+    # -- Full content of the libpq password file (one line per entry, format
+    #    `hostname:port:database:username:password`).
+    pgpass: ""
+
+  # -- Use an existing Secret instead of creating one (skips the template).
+  # Required keys: `pg-service.conf`, `pg-pass`.
+  # Optional keys: `secret-key`, `encrypt-key`, `iv`,
+  # `db-name`, `db-user`, `db-password`, `db-host`, `db-port`.
+  existingSecret: ""
+
+  # -- Sensitive values rendered into the created Secret.
+  secret:
+    # -- Django SECRET_KEY (required when no existingSecret).
+    secretKey: ""
+    # -- AES key/IV used to decrypt user identity from URLs (required when no existingSecret).
+    encryptKey: ""
+    iv: ""
+    # -- Optional DB_* pass-through variables (kept for parity with
+    #    docker-compose; Django itself connects via the service file).
+    db:
+      name: ""
+      user: ""
+      password: ""
+      host: ""
+      port: ""
+
+  # -- Extra environment variables, e.g.
+  #    extraEnv:
+  #      - name: REDIS_HOST
+  #        value: redis.internal
+  extraEnv: []
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  # -- Pod-level security context. Defaults match the hardened production
+  # image (non-root user `django`, uid 10000, gid 10001). When using the
+  # development image, set runAsUser/runAsGroup to 0 and runAsNonRoot to false.
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10001
+
+  securityContext: {}
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  probes:
+    startup:
+      failureThreshold: 30
+      periodSeconds: 5
+    liveness:
+      periodSeconds: 20
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+frontend:
+  image:
+    registry: ""
+    repository: estimate-form-frontend
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  replicaCount: 2
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  nginx:
+    # -- Nginx proxy timeout for /api/ calls; keep in sync with backend.gunicorn.timeout.
+    proxyTimeoutSeconds: 900
+    # Max uploaded request body size (nginx defaults to only 1m).
+    clientMaxBodySize: 25m
+    metrics:
+      # -- Scrape nginx connection/request metrics with an
+      # nginx-prometheus-exporter sidecar (adds a `metrics` port 9113).
+      enabled: true
+      exporter:
+        image:
+          registry: ""
+          repository: nginx/nginx-prometheus-exporter
+          tag: "1.4.2"
+          pullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # The stock nginx image starts its master process as root (to bind :80),
+  # so no restrictive pod security context by default.
+  podSecurityContext: {}
+  securityContext: {}
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  probes:
+    startup:
+      failureThreshold: 10
+      periodSeconds: 2
+    liveness:
+      periodSeconds: 20
+      timeoutSeconds: 3
+      failureThreshold: 3
+    readiness:
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+ingress:
+  # -- Expose the frontend through an Ingress (the frontend nginx proxies /api/ to the backend).
+  enabled: true
+  # -- Ingress class name (nginx, traefik, haproxy, ...).
+  className: nginx
+  # -- Public hostname, e.g. estimate.corp.example.com.
+  host: estimate-form.example.com
+  annotations: {}
+  tls:
+    enabled: false
+    # -- Existing TLS Secret name (with tls.enabled=false, app is served over http://).
+    secretName: ""
+
+# -- Observability integration settings.
+monitoring:
+  serviceMonitor:
+    # -- Create Prometheus Operator ServiceMonitors for backend and frontend.
+    # These require kube-prometheus-stack (or a standalone Prometheus Operator).
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    # -- Labels added to ServiceMonitors. The Prometheus instance must select
+    # ServiceMonitors by these labels. kube-prometheus-stack by default selects
+    # the label `release: <its own Helm release name>`.
+    labels:
+      release: kube-prometheus-stack
+  grafana:
+    dashboard:
+      # -- Create a ConfigMap with a ready-to-use Grafana dashboard.
+      enabled: true
+      # -- Labels recognised by the Grafana sidecar (kube-prometheus-stack
+      # default: `grafana_dashboard: "1"`). The dashboard then appears
+      # automatically; without a sidecar, import the JSON manually.
+      labels:
+        grafana_dashboard: "1"
+      annotations:
+        grafana_folder: estimate-form
