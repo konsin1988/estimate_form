@@ -1,53 +1,52 @@
-# Example production overrides for the estimate-form chart.
-# Copy, adjust and install with:
-#   helm upgrade --install estimate-form deploy/estimate-form \
-#     -n estimate-form --create-namespace \
-#     -f deploy/estimate-form/values-production.yaml
+# Production values for the estimate-form chart.
+#
+# This file drives the GitOps deployment with ArgoCD (see deploy/argocd/):
+# the ArgoCD Application tracks the default branch and renders this chart
+# with the overrides below.
+#
+# GitLab CI (the release:values job) bumps backend/frontend image tags on
+# every pushed vX.Y.Z tag and commits the change back to the default
+# branch -- do not edit the tags manually.
+#
+# The file is SECRET-FREE by design: all credentials live in the
+# pre-created `estimate-form-backend-secret` Secret in the `estimate-form`
+# namespace (see deploy/argocd/README.md for the exact contents).
 
 global:
-  # Private registry prefix for all images (backend, frontend and the
-  # nginx-prometheus-exporter sidecar).
-  imageRegistry: registry.corp.example.com/team
+  # GitLab Container Registry of this project. Effective image references:
+  #   git.rtt.digital/konsin1988/estimate-form/backend:<tag>
+  #   git.rtt.digital/konsin1988/estimate-form/frontend:<tag>
+  imageRegistry: git.rtt.digital/konsin1988/estimate-form
   imagePullSecrets:
-    - name: regcred
+    - name: gitlab-registry
 
 backend:
   replicaCount: 3
 
   gunicorn:
     workers: 4
+    # Heavy, long-running API queries (matches docker-compose --timeout 900).
+    timeout: 900
 
   image:
-    # tag defaults to the chart appVersion; pin explicitly per release:
+    repository: backend
+    # Managed by GitLab CI; initial value matches the chart appVersion.
     tag: "1.0.0"
 
-  # Django / crypto secrets -- CHANGE ME. Do not commit real values.
-  secret:
-    secretKey: "CHANGE_ME-django-secret-key"
-    encryptKey: "CHANGE_ME-aes-key"
-    iv: "CHANGE_ME-aes-iv"
-    db:
-      # Optional pass-through variables (django itself uses the service file).
-      name: ""
-      user: ""
-      password: ""
-      host: ""
-      port: ""
+  # Credentials are delivered through a pre-created Secret so that nothing
+  # sensitive is stored in git. Required keys:
+  #   pg-service.conf, pg-pass, secret-key, encrypt-key, iv
+  existingSecret: estimate-form-backend-secret
 
+  # Mount the pg connection files from the Secret into /pg-secrets
+  # (the startup script copies them with the correct permissions).
   postgres:
     viaSecret: true
-    # Full pg_service.conf content (the [revenue] section is the alias used by
-    # settings.py). Indentation matters; use Unix (LF) line endings.
-    serviceFile: |
-      [revenue]
-      host=172.16.3.158
-      port=5432
-      dbname=skud_va
-      user=d_konshin
-    # Full libpq password file content. The chart fixes permissions to 0600
-    # automatically; do NOT commit real values to git.
-    pgpass: |
-      172.16.3.158:5432:skud_va:d_konshin:CHANGE_ME
+
+  env:
+    debug: "false"
+    allowedHosts: "estimate.rtt.digital"
+    # csrfTrustedOrigins: derived from the ingress host/scheme when empty.
 
   resources:
     requests:
@@ -61,7 +60,19 @@ frontend:
   replicaCount: 2
 
   image:
+    repository: frontend
+    # Managed by GitLab CI; initial value matches the chart appVersion.
     tag: "1.0.0"
+
+  nginx:
+    metrics:
+      exporter:
+        image:
+          # The exporter sidecar comes from Docker Hub, not from the project
+          # registry -- pin its registry explicitly so global.imageRegistry
+          # (the GitLab registry) does not rewrite it to a non-existent
+          # image reference.
+          registry: docker.io
 
   resources:
     requests:
@@ -74,7 +85,7 @@ frontend:
 ingress:
   enabled: true
   className: nginx
-  host: estimate.corp.example.com
+  host: estimate.rtt.digital
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
   tls:
@@ -84,8 +95,8 @@ ingress:
 monitoring:
   serviceMonitor:
     enabled: true
-    # MUST match the serviceMonitorSelector labels of your Prometheus
-    # (the release name of your kube-prometheus-stack installation).
+    # Must match the serviceMonitorSelector labels of the Prometheus
+    # release (kube-prometheus-stack) running in the cluster.
     labels:
       release: kube-prometheus-stack
   grafana:

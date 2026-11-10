@@ -1,0 +1,52 @@
+# ArgoCD Application: estimate-form (production).
+#
+# Syncs the Helm chart from this repository into the `estimate-form`
+# namespace. Values come from deploy/estimate-form/values-production.yaml,
+# whose backend/frontend image tags are bumped by GitLab CI on every pushed
+# vX.Y.Z release tag (the release:values job) -- a push of a release tag is
+# the only thing needed to deploy a new version.
+#
+# Apply once (see deploy/argocd/README.md):
+#   kubectl apply -f deploy/argocd/application.yaml
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: estimate-form
+  # Namespace where ArgoCD is installed; Application resources live there.
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: estimate-form
+  finalizers:
+    # Cascade-delete cluster resources together with the Application.
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://git.rtt.digital/konsin1988/estimate-form.git
+    # Track the default branch; release commits land there.
+    targetRevision: main
+    path: deploy/estimate-form
+    helm:
+      releaseName: estimate-form
+      valueFiles:
+        - values-production.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: estimate-form
+  syncPolicy:
+    # Deploy automatically whenever a new release commit arrives; `prune`
+    # removes resources deleted from the chart, `selfHeal` reverts manual
+    # kubectl changes back to the git state.
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m

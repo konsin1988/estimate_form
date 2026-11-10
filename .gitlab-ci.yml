@@ -1,0 +1,295 @@
+# GitLab CI/CD pipeline for estimate-form.
+#
+# Pipeline types:
+#   merge request  -> quality stage only (lints, Django check, chart validation)
+#   push to main   -> quality + build (images tagged with the short commit SHA)
+#   tag vX.Y.Z     -> quality + build + scan + release
+#
+# The release job (release:values) bumps the image tags in
+# deploy/estimate-form/values-production.yaml and pushes the change back to
+# the default branch with a [ci skip] marker. ArgoCD tracks that file and
+# syncs the cluster (see deploy/argocd/). This pipeline never talks to the
+# Kubernetes cluster itself.
+#
+# Required CI/CD variables (Settings -> CI/CD -> Variables):
+#   GIT_PUSH_TOKEN  Project access token, role: Maintainer,
+#                   scope: write_repository. Used by release:values to push
+#                   the tag-bump commit. Mark it protected + masked.
+#
+# Registry authentication uses the built-in CI job token
+# (CI_REGISTRY_USER / CI_REGISTRY_PASSWORD) -- nothing to configure.
+
+stages:
+  - quality
+  - build
+  - scan
+  - release
+
+default:
+  # Project setting "Auto-cancel redundant pipelines" can stop superseded
+  # quality/build work early; release (tag) pipelines are never superseded.
+  interruptible: true
+
+workflow:
+  rules:
+    # Branches without a merge request run no pipeline (their MR pipeline
+    # covers them once the MR is opened).
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+variables:
+  BACKEND_IMAGE: "$CI_REGISTRY_IMAGE/backend"
+  FRONTEND_IMAGE: "$CI_REGISTRY_IMAGE/frontend"
+
+# ---------------------------------------------------------------------------
+# quality
+# ---------------------------------------------------------------------------
+
+backend:quality:
+  stage: quality
+  image: python:3.11-slim
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+    # settings.py evaluates os.getenv("DEBUG").lower() at import time and no
+    # .env file exists in CI -- provide the variable explicitly.
+    DEBUG: "false"
+  cache:
+    key:
+      files:
+        - docker/django/requirements.txt
+    paths:
+      - .cache/pip/
+  before_script:
+    - pip install --quiet ruff==0.17.4 --requirement docker/django/requirements.txt
+  script:
+    # Ruff rules are calibrated in .ruff.toml so the current codebase passes.
+    - ruff check backend/
+    # Django system checks: validates settings, apps and URL configuration
+    # without connecting to any database.
+    - cd backend
+    - python manage.py check
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+frontend:quality:
+  stage: quality
+  image: node:20-slim
+  variables:
+    npm_config_cache: "$CI_PROJECT_DIR/frontend/.npm"
+  cache:
+    key:
+      files:
+        - frontend/package-lock.json
+    paths:
+      - frontend/.npm/
+  before_script:
+    - cd frontend
+    - npm ci --no-audit --no-fund
+  script:
+    # `vite build` does not type-check or lint; ESLint is the blocking gate.
+    # Calibrated in frontend/eslint.config.js, existing findings are warnings.
+    - npm run lint
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+frontend:typecheck:
+  # Informational: the codebase carries ~170 legacy TypeScript errors
+  # (vite/esbuild never type-checks) -- tsc has no "warning" severity, so an
+  # error here must not block releases. Clean up the type debt, then remove
+  # `allow_failure` to make this a real gate.
+  stage: quality
+  image: node:20-slim
+  allow_failure: true
+  variables:
+    npm_config_cache: "$CI_PROJECT_DIR/frontend/.npm"
+  cache:
+    key:
+      files:
+        - frontend/package-lock.json
+    paths:
+      - frontend/.npm/
+  before_script:
+    - cd frontend
+    - npm ci --no-audit --no-fund
+  script:
+    - npm run typecheck
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+helm:quality:
+  stage: quality
+  image: alpine/helm:3.16.4
+  variables:
+    KUBECONFORM_VERSION: "v0.6.7"
+  before_script:
+    # kubeconform validates rendered manifests against upstream Kubernetes
+    # schemas; custom resources (ServiceMonitor) are skipped via
+    # -ignore-missing-schemas.
+    - wget -q -O - "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" | tar -xz -C /usr/local/bin kubeconform
+  script:
+    # Lint/render with the production values file -- the exact combination
+    # ArgoCD deploys.
+    - helm lint deploy/estimate-form --values deploy/estimate-form/values-production.yaml
+    - helm template estimate-form deploy/estimate-form --values deploy/estimate-form/values-production.yaml > /tmp/rendered.yaml
+    - kubeconform -ignore-missing-schemas -summary /tmp/rendered.yaml
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# ---------------------------------------------------------------------------
+# build (kaniko; needs no privileged runner)
+# ---------------------------------------------------------------------------
+
+build:backend:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  before_script:
+    # Log in to the GitLab Container Registry with the CI job token.
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf '%s:%s' "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+  script:
+    # Release tags vX.Y.Z -> image tag X.Y.Z (what ArgoCD deploys);
+    # other builds (main) use the short commit SHA for traceability.
+    - IMAGE_TAG="${CI_COMMIT_TAG#v}"
+    - if [ -z "${IMAGE_TAG}" ]; then IMAGE_TAG="${CI_COMMIT_SHORT_SHA}"; fi
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/docker/django-prod/Dockerfile"
+      --destination "${BACKEND_IMAGE}:${IMAGE_TAG}"
+      --cache=true
+      --cache-repo "${CI_REGISTRY_IMAGE}/cache"
+  rules:
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+build:frontend:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf '%s:%s' "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+  script:
+    - IMAGE_TAG="${CI_COMMIT_TAG#v}"
+    - if [ -z "${IMAGE_TAG}" ]; then IMAGE_TAG="${CI_COMMIT_SHORT_SHA}"; fi
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/docker/react/Dockerfile"
+      --destination "${FRONTEND_IMAGE}:${IMAGE_TAG}"
+      --cache=true
+      --cache-repo "${CI_REGISTRY_IMAGE}/cache"
+  rules:
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# ---------------------------------------------------------------------------
+# scan (release gate -- runs after a successful build, before the release)
+# ---------------------------------------------------------------------------
+
+scan:backend:
+  stage: scan
+  image: aquasec/trivy:0.58.1
+  variables:
+    TRIVY_USERNAME: "$CI_REGISTRY_USER"
+    TRIVY_PASSWORD: "$CI_REGISTRY_PASSWORD"
+    TRIVY_AUTH_URL: "$CI_REGISTRY"
+    TRIVY_CACHE_DIR: "$CI_PROJECT_DIR/.trivycache"
+  cache:
+    key: trivy-db
+    paths:
+      - .trivycache/
+  script:
+    - IMAGE_TAG="${CI_COMMIT_TAG#v}"
+    - >
+      trivy image "${BACKEND_IMAGE}:${IMAGE_TAG}"
+      --scanners vuln
+      --ignore-unfixed
+      --exit-code 1
+      --severity CRITICAL
+      --format template --template "@/contrib/gitlab.tpl"
+      --output gl-container-scanning-report.json
+  artifacts:
+    # Keep the report even when the scan fails, so findings are inspectable
+    # in the pipeline view / Security tab.
+    when: always
+    reports:
+      container_scanning: gl-container-scanning-report.json
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+
+scan:frontend:
+  stage: scan
+  image: aquasec/trivy:0.58.1
+  variables:
+    TRIVY_USERNAME: "$CI_REGISTRY_USER"
+    TRIVY_PASSWORD: "$CI_REGISTRY_PASSWORD"
+    TRIVY_AUTH_URL: "$CI_REGISTRY"
+    TRIVY_CACHE_DIR: "$CI_PROJECT_DIR/.trivycache"
+  cache:
+    key: trivy-db
+    paths:
+      - .trivycache/
+  script:
+    - IMAGE_TAG="${CI_COMMIT_TAG#v}"
+    - >
+      trivy image "${FRONTEND_IMAGE}:${IMAGE_TAG}"
+      --scanners vuln
+      --ignore-unfixed
+      --exit-code 1
+      --severity CRITICAL
+      --format template --template "@/contrib/gitlab.tpl"
+      --output gl-container-scanning-report.json
+  artifacts:
+    when: always
+    reports:
+      container_scanning: gl-container-scanning-report.json
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+
+# ---------------------------------------------------------------------------
+# release (GitOps: bump image tags so ArgoCD picks up the new version)
+# ---------------------------------------------------------------------------
+
+release:values:
+  stage: release
+  image: alpine:3.20
+  variables:
+    # Full history: the job fetches the default branch after being checked
+    # out at the tag.
+    GIT_DEPTH: "0"
+  before_script:
+    - apk add --no-cache git yq
+    # The runner's workdir is owned by a different uid than the container
+    # user in this image.
+    - git config --global --add safe.directory "${CI_PROJECT_DIR}"
+    - git config user.name "GitLab CI"
+    - git config user.email "ci@${CI_SERVER_HOST}"
+    # Push access via the project access token (see variable docs at the
+    # top of this file).
+    - git remote set-url origin "https://oauth2:${GIT_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+  script:
+    - export IMAGE_TAG="${CI_COMMIT_TAG#v}"
+    - git fetch origin "${CI_DEFAULT_BRANCH}"
+    - git checkout -B "${CI_DEFAULT_BRANCH}" "origin/${CI_DEFAULT_BRANCH}"
+    # strenv() forces string values (versions must stay strings, not YAML
+    # numbers).
+    - yq -i '.backend.image.tag = strenv(IMAGE_TAG) | .frontend.image.tag = strenv(IMAGE_TAG)' deploy/estimate-form/values-production.yaml
+    - git add deploy/estimate-form/values-production.yaml
+    # [ci skip] prevents GitLab from running a pipeline for the bump commit.
+    - git commit -m "[ci skip] release: image tags -> ${IMAGE_TAG}" || { echo "values-production.yaml unchanged, nothing to release"; exit 0; }
+    - git push origin "${CI_DEFAULT_BRANCH}"
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
