@@ -289,7 +289,7 @@ release:values:
     - yq -i '.backend.image.tag = strenv(IMAGE_TAG) | .frontend.image.tag = strenv(IMAGE_TAG)' deploy/estimate-form/values-production.yaml
     - git add deploy/estimate-form/values-production.yaml
     # [ci skip] prevents GitLab from running a pipeline for the bump commit.
-    - git commit -m "[ci skip] release: image tags -> ${IMAGE_TAG}" || { echo "values-production.yaml unchanged, nothing to release"; exit 0; }
+    - 'git commit -m "[ci skip] release: image tags -> ${IMAGE_TAG}" || { echo "values-production.yaml unchanged, nothing to release"; exit 0; }'
     - git push origin "${CI_DEFAULT_BRANCH}"
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
